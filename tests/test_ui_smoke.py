@@ -51,6 +51,7 @@ def test_page_renders(page):
 
 def test_fetch_flow_on_sources_page():
     at = _open(nav.PAGE_SOURCES)
+    at.selectbox(key="src_source").set_value("sample").run()   # offline – bez sieci
     at.text_input(key="src_query").input("pixel").run()
     at.button(key="src_fetch").click().run()
     assert not at.exception, at.exception

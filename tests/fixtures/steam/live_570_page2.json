@@ -1,0 +1,136 @@
+{
+ "response": {
+  "query_summary": {
+   "num_reviews": 5
+  },
+  "reviews": [
+   {
+    "recommendationid": "239361252",
+    "author": {
+     "steamid": "76561198088369344",
+     "num_reviews": 2,
+     "playtime_forever": 517810,
+     "playtime_last_two_weeks": 43,
+     "playtime_at_review": 517768,
+     "last_played": 1793804522
+    },
+    "language": "english",
+    "review": "👎 **Not Recommended**\r\n\r\nDota 2 is a great game to play with friends, but a miserable experience when playing solo.\r\n\r\nSolo queue feels like a punishment. Party queue is at least bearable because you have friends to suffer with.\r\n\r\nWould I recommend this game to new players? Absolutely not.\r\n\r\nWould I play it again tomorrow? Unfortunately, yes.\r\n\r\n**The game isn't fun. The people I play with make it fun.**",
+    "timestamp_created": 1793802252,
+    "timestamp_updated": 1793802252,
+    "voted_up": false,
+    "votes_up": 2,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.524372935295105,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "239359831",
+    "author": {
+     "steamid": "76561198726750220",
+     "num_reviews": 1,
+     "playtime_forever": 30063,
+     "playtime_last_two_weeks": 1878,
+     "playtime_at_review": 30062,
+     "last_played": 1793803646
+    },
+    "language": "english",
+    "review": "yes",
+    "timestamp_created": 1793801298,
+    "timestamp_updated": 1793801298,
+    "voted_up": true,
+    "votes_up": 0,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.5,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "239359783",
+    "author": {
+     "steamid": "76561199491777520",
+     "num_reviews": 1,
+     "playtime_forever": 133850,
+     "playtime_last_two_weeks": 5576,
+     "playtime_at_review": 133797,
+     "last_played": 1793804450
+    },
+    "language": "english",
+    "review": "RELAXING TILL YOU'RE STRESSED ABOUT TEAMMATES HAHAHAH!",
+    "timestamp_created": 1793801264,
+    "timestamp_updated": 1793801264,
+    "voted_up": true,
+    "votes_up": 0,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.5,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "239359688",
+    "author": {
+     "steamid": "76561198644686864",
+     "num_reviews": 1,
+     "playtime_forever": 19295,
+     "playtime_last_two_weeks": 5121,
+     "playtime_at_review": 19209,
+     "last_played": 1793806452
+    },
+    "language": "english",
+    "review": "SO GOOD\r\n",
+    "timestamp_created": 1793801185,
+    "timestamp_updated": 1793801185,
+    "voted_up": true,
+    "votes_up": 0,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.5,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "239355111",
+    "author": {
+     "steamid": "76561199195862281",
+     "num_reviews": 2,
+     "playtime_forever": 37633,
+     "playtime_last_two_weeks": 2395,
+     "playtime_at_review": 37633,
+     "last_played": 1793725749
+    },
+    "language": "english",
+    "review": "this game is recommended for anyone want to play moba and beginner,cause all player is very kind and respect each other",
+    "timestamp_created": 1793797690,
+    "timestamp_updated": 1793797690,
+    "voted_up": true,
+    "votes_up": 0,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.5,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   }
+  ],
+  "cursor": "AoJwqZKr06EDd86IkQc=",
+  "total_matching": 843095
+ }
+}

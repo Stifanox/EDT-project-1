@@ -1,0 +1,141 @@
+{
+ "response": {
+  "query_summary": {
+   "num_reviews": 5,
+   "review_score": 8,
+   "review_score_desc": "Very Positive",
+   "total_positive": 1890432,
+   "total_negative": 360211,
+   "total_reviews": 2250643
+  },
+  "reviews": [
+   {
+    "recommendationid": "210000001",
+    "author": {
+     "steamid": "76561198000000001",
+     "num_reviews": 3,
+     "playtime_forever": 90000,
+     "playtime_last_two_weeks": 60,
+     "playtime_at_review": 89970,
+     "last_played": 1793003600
+    },
+    "language": "english",
+    "review": "[h1]Best MOBA ever[/h1] Still playing after 10 years. The new hero is great &amp; balanced.",
+    "timestamp_created": 1793000000,
+    "timestamp_updated": 1793000120,
+    "voted_up": true,
+    "votes_up": 1,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.523809552192688,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "210000002",
+    "author": {
+     "steamid": "76561198000000002",
+     "num_reviews": 3,
+     "playtime_forever": 54000,
+     "playtime_last_two_weeks": 60,
+     "playtime_at_review": 53970,
+     "last_played": 1793000000
+    },
+    "language": "english",
+    "review": "Matchmaking is broken again.<br>Lost 8 games in a row because of leavers.",
+    "timestamp_created": 1792996400,
+    "timestamp_updated": 1792996520,
+    "voted_up": false,
+    "votes_up": 2,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.0,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "210000003",
+    "author": {
+     "steamid": "76561198000000003",
+     "num_reviews": 3,
+     "playtime_forever": 12000,
+     "playtime_last_two_weeks": 60,
+     "playtime_at_review": 11970,
+     "last_played": 1792996400
+    },
+    "language": "english",
+    "review": "fun with friends, toxic with strangers [spoiler]but still fun[/spoiler]",
+    "timestamp_created": 1792992800,
+    "timestamp_updated": 1792992920,
+    "voted_up": true,
+    "votes_up": 3,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.523809552192688,
+    "comment_count": 0,
+    "steam_purchase": false,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "210000004",
+    "author": {
+     "steamid": "76561198000000004",
+     "num_reviews": 3,
+     "playtime_forever": 30000,
+     "playtime_last_two_weeks": 60,
+     "playtime_at_review": 29970,
+     "last_played": 1792992800
+    },
+    "language": "english",
+    "review": "Uninstalled. The latest patch ruined my favourite hero. https://example.com/patchnotes",
+    "timestamp_created": 1792989200,
+    "timestamp_updated": 1792989320,
+    "voted_up": false,
+    "votes_up": 0,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.0,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "210000005",
+    "author": {
+     "steamid": "76561198000000005",
+     "num_reviews": 3,
+     "playtime_forever": 600,
+     "playtime_last_two_weeks": 60,
+     "playtime_at_review": 570,
+     "last_played": 1792989200
+    },
+    "language": "english",
+    "review": "Free to play and actually fair. 10/10",
+    "timestamp_created": 1792985600,
+    "timestamp_updated": 1792985720,
+    "voted_up": true,
+    "votes_up": 1,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.523809552192688,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   }
+  ],
+  "cursor": "AoJ4tey90tECdcOtxwI=",
+  "total_matching": 2250643
+ }
+}

@@ -3,7 +3,7 @@ streamlit>=1.40
 pandas>=2.2
 
 # --- źródła danych (O1: D1, D3) ---
-# requests>=2.32
+requests>=2.32              # D1: Steam API
 # beautifulsoup4>=4.12
 
 # --- modele sentymentu (O2: M1–M4) ---

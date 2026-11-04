@@ -1,0 +1,150 @@
+{
+ "total": 10,
+ "items": [
+  {
+   "type": "app",
+   "name": "Dota 2",
+   "id": 570,
+   "metascore": "90",
+   "platforms": {
+    "windows": true,
+    "mac": true,
+    "linux": true
+   },
+   "streamingvideo": false
+  },
+  {
+   "type": "app",
+   "name": "Dota Underlords",
+   "id": 1046930,
+   "metascore": "",
+   "platforms": {
+    "windows": true,
+    "mac": true,
+    "linux": true
+   },
+   "streamingvideo": false
+  },
+  {
+   "type": "app",
+   "name": "The Dota 2 Remixes EP",
+   "id": 652720,
+   "metascore": "",
+   "platforms": {
+    "windows": true,
+    "mac": true,
+    "linux": true
+   },
+   "streamingvideo": false
+  },
+  {
+   "type": "app",
+   "name": "The Dota 2 Official Soundtrack",
+   "id": 1241930,
+   "price": {
+    "currency": "USD",
+    "initial": 999,
+    "final": 999
+   },
+   "metascore": "",
+   "platforms": {
+    "windows": true,
+    "mac": true,
+    "linux": true
+   },
+   "streamingvideo": false
+  },
+  {
+   "type": "app",
+   "name": "Dota 2 Player Profiles",
+   "id": 411180,
+   "metascore": "",
+   "platforms": {
+    "windows": true,
+    "mac": true,
+    "linux": true
+   },
+   "streamingvideo": true,
+   "controller_support": "full"
+  },
+  {
+   "type": "app",
+   "name": "dotAGE",
+   "id": 638510,
+   "price": {
+    "currency": "USD",
+    "initial": 1759,
+    "final": 1759
+   },
+   "metascore": "",
+   "platforms": {
+    "windows": true,
+    "mac": true,
+    "linux": true
+   },
+   "streamingvideo": false,
+   "controller_support": "full"
+  },
+  {
+   "type": "app",
+   "name": "dotAGE: Folkways",
+   "id": 3384630,
+   "price": {
+    "currency": "USD",
+    "initial": 799,
+    "final": 799
+   },
+   "metascore": "",
+   "platforms": {
+    "windows": true,
+    "mac": true,
+    "linux": true
+   },
+   "streamingvideo": false,
+   "controller_support": "full"
+  },
+  {
+   "type": "app",
+   "name": "dotAGE: Trade Secrets",
+   "id": 4393280,
+   "price": {
+    "currency": "USD",
+    "initial": 799,
+    "final": 799
+   },
+   "metascore": "",
+   "platforms": {
+    "windows": true,
+    "mac": true,
+    "linux": true
+   },
+   "streamingvideo": false,
+   "controller_support": "full"
+  },
+  {
+   "type": "app",
+   "name": "dotAGE Demo",
+   "id": 1997180,
+   "metascore": "",
+   "platforms": {
+    "windows": true,
+    "mac": true,
+    "linux": true
+   },
+   "streamingvideo": false,
+   "controller_support": "full"
+  },
+  {
+   "type": "app",
+   "name": "DOTARIX",
+   "id": 5045330,
+   "metascore": "",
+   "platforms": {
+    "windows": true,
+    "mac": true,
+    "linux": true
+   },
+   "streamingvideo": false
+  }
+ ]
+}

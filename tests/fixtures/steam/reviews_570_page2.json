@@ -1,0 +1,160 @@
+{
+ "response": {
+  "query_summary": {
+   "num_reviews": 6
+  },
+  "reviews": [
+   {
+    "recommendationid": "210000005",
+    "author": {
+     "steamid": "76561198000000005",
+     "num_reviews": 3,
+     "playtime_forever": 600,
+     "playtime_last_two_weeks": 60,
+     "playtime_at_review": 570,
+     "last_played": 1792989200
+    },
+    "language": "english",
+    "review": "Free to play and actually fair. 10/10",
+    "timestamp_created": 1792985600,
+    "timestamp_updated": 1792985720,
+    "voted_up": true,
+    "votes_up": 1,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.523809552192688,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "210000006",
+    "author": {
+     "steamid": "76561198000000006",
+     "num_reviews": 3,
+     "playtime_forever": 100,
+     "playtime_last_two_weeks": 60,
+     "playtime_at_review": 70,
+     "last_played": 1792985600
+    },
+    "language": "english",
+    "review": "   ",
+    "timestamp_created": 1792982000,
+    "timestamp_updated": 1792982120,
+    "voted_up": true,
+    "votes_up": 2,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.0,
+    "comment_count": 0,
+    "steam_purchase": false,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "210000007",
+    "author": {
+     "steamid": "76561198000000007",
+     "num_reviews": 3,
+     "playtime_forever": 4000,
+     "playtime_last_two_weeks": 60,
+     "playtime_at_review": 3970,
+     "last_played": 1792982000
+    },
+    "language": "english",
+    "review": "Servers lag every evening in EU West. Unplayable.",
+    "timestamp_created": 1792978400,
+    "timestamp_updated": 1792978520,
+    "voted_up": false,
+    "votes_up": 3,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.523809552192688,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "210000008",
+    "author": {
+     "steamid": "76561198000000008",
+     "num_reviews": 3,
+     "playtime_forever": 2500,
+     "playtime_last_two_weeks": 60,
+     "playtime_at_review": 2470,
+     "last_played": 1792917200
+    },
+    "language": "english",
+    "review": "The art style and music are amazing, learning curve is steep though.",
+    "timestamp_created": 1792913600,
+    "timestamp_updated": 1792913720,
+    "voted_up": true,
+    "votes_up": 0,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.0,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "210000009",
+    "author": {
+     "steamid": "76561198000000009",
+     "num_reviews": 3,
+     "playtime_forever": 300,
+     "playtime_last_two_weeks": 60,
+     "playtime_at_review": 270,
+     "last_played": 1792830800
+    },
+    "language": "english",
+    "review": "Too complicated for new players, the tutorial explains nothing.",
+    "timestamp_created": 1792827200,
+    "timestamp_updated": 1792827320,
+    "voted_up": false,
+    "votes_up": 1,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.523809552192688,
+    "comment_count": 0,
+    "steam_purchase": false,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "210000010",
+    "author": {
+     "steamid": "76561198000000010",
+     "num_reviews": 3,
+     "playtime_forever": 70000,
+     "playtime_last_two_weeks": 60,
+     "playtime_at_review": 69970,
+     "last_played": 1792744400
+    },
+    "language": "english",
+    "review": "Great game, terrible community.",
+    "timestamp_created": 1792740800,
+    "timestamp_updated": 1792740920,
+    "voted_up": true,
+    "votes_up": 2,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.0,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   }
+  ],
+  "cursor": "AoJ43+Lr0NECeKmv8QI="
+ }
+}

@@ -3,6 +3,7 @@
 import streamlit as st
 
 from opimon import config
+from opimon.errors import SourceError
 from opimon.ui import nav
 from opimon.ui.components import SCORE_COLUMN, flash, page_header, reviews_table
 from opimon.ui.state import get_services
@@ -17,7 +18,13 @@ source_name = st.selectbox(
 )
 source = services.sources[source_name]
 query = st.text_input("Szukaj obiektu", key="src_query", placeholder="np. Starfall")
-targets = source.find_targets(query) if query else []
+targets = []
+if query:
+    try:
+        targets = source.find_targets(query)
+    except SourceError as exc:
+        st.error(str(exc))
+        query = ""
 if query and not targets:
     st.info("Brak wyników dla tego zapytania.")
 if targets:

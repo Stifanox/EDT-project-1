@@ -1,0 +1,148 @@
+{
+ "response": {
+  "query_summary": {
+   "num_reviews": 5,
+   "review_score": 8,
+   "review_score_desc": "Very Positive",
+   "total_positive": 740574,
+   "total_negative": 102521,
+   "total_reviews": 843095
+  },
+  "reviews": [
+   {
+    "recommendationid": "239367903",
+    "author": {
+     "steamid": "76561198166877301",
+     "num_reviews": 1,
+     "playtime_forever": 151841,
+     "playtime_last_two_weeks": 2455,
+     "playtime_at_review": 151811,
+     "last_played": 1793808426
+    },
+    "language": "english",
+    "review": "nice game",
+    "timestamp_created": 1793806745,
+    "timestamp_updated": 1793806745,
+    "voted_up": true,
+    "votes_up": 0,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.5,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "239367535",
+    "author": {
+     "steamid": "76561198367284677",
+     "num_reviews": 1,
+     "playtime_forever": 691572,
+     "playtime_last_two_weeks": 5001,
+     "playtime_at_review": 691572,
+     "last_played": 1793806345
+    },
+    "language": "english",
+    "review": "Can valve revoke overwatch? too many boosted heralds have the right to judge!!!!",
+    "timestamp_created": 1793806500,
+    "timestamp_updated": 1793806627,
+    "voted_up": false,
+    "votes_up": 0,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.5,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "239364917",
+    "author": {
+     "steamid": "76561198183969153",
+     "num_reviews": 2,
+     "playtime_forever": 296827,
+     "playtime_last_two_weeks": 1170,
+     "playtime_at_review": 296751,
+     "last_played": 1793808575
+    },
+    "language": "english",
+    "review": "dogshit ahh game\r\n",
+    "timestamp_created": 1793804778,
+    "timestamp_updated": 1793804778,
+    "voted_up": false,
+    "votes_up": 0,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.5,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "239364916",
+    "author": {
+     "steamid": "76561198153406315",
+     "num_reviews": 1,
+     "playtime_forever": 516383,
+     "playtime_last_two_weeks": 865,
+     "playtime_at_review": 516358,
+     "last_played": 1793805851
+    },
+    "language": "english",
+    "review": "Not for the weak-minded!",
+    "timestamp_created": 1793804778,
+    "timestamp_updated": 1793804778,
+    "voted_up": true,
+    "votes_up": 0,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.5,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false
+   },
+   {
+    "recommendationid": "239363064",
+    "author": {
+     "steamid": "76561199722432172",
+     "num_reviews": 2,
+     "playtime_forever": 71,
+     "playtime_last_two_weeks": 71,
+     "playtime_at_review": 11,
+     "last_played": 1793809334
+    },
+    "language": "english",
+    "review": "Amazing MOBA game i have ever played would recommend to someone",
+    "timestamp_created": 1793803493,
+    "timestamp_updated": 1793803493,
+    "voted_up": true,
+    "votes_up": 0,
+    "votes_funny": 0,
+    "weighted_vote_score": 0.5,
+    "comment_count": 0,
+    "steam_purchase": true,
+    "received_for_free": false,
+    "written_during_early_access": false,
+    "primarily_steam_deck": false,
+    "refunded": false,
+    "hardware": {
+     "os": "Windows 10",
+     "cpu_name": "Intel(R) Core(TM) i5-5200U CPU @ 2.20GHz",
+     "adapter_description": "NVIDIA GeForce 940M",
+     "system_ram": "4018",
+     "vram_size": 2001
+    }
+   }
+  ],
+  "cursor": "AoJ46KPB06EDeL+MkQc=",
+  "total_matching": 843095
+ }
+}
