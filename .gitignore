@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# IDE
+.idea/
+.vscode/
+
+# Dane runtime (generowane – NIE commitujemy). data/sample/ JEST w repo.
+data/opimon.db*
+data/models/
+data/datasets/
+data/cache/
+*.log
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Claude Code – lokalne ustawienia
+.claude/settings.local.json

@@ -1,0 +1,21 @@
+[project]
+name = "opimon"
+version = "0.1.0"
+description = "Inteligentny system monitorowania opinii: pobieranie recenzji z Internetu i analiza sentymentu"
+requires-python = ">=3.11"
+readme = "README.md"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+markers = [
+    "slow: wymaga ciężkich modeli (transformers / torch) lub pełnego zbioru IMDB; pomiń: pytest -m 'not slow'",
+    "network: wymaga dostępu do Internetu; pomiń: pytest -m 'not network'",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

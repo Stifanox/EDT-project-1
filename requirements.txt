@@ -1,0 +1,17 @@
+# --- rdzeń (P0) ---
+streamlit>=1.40
+pandas>=2.2
+
+# --- źródła danych (O1: D1, D3) ---
+# requests>=2.32
+# beautifulsoup4>=4.12
+
+# --- modele sentymentu (O2: M1–M4) ---
+# scikit-learn>=1.5
+# joblib>=1.4
+# vaderSentiment>=3.3
+# transformers>=4.44           # M4; ciągnie torch – pierwsza instalacja trwa dłużej
+# torch>=2.3
+
+# --- wykresy (O3: A2, A4) ---
+# plotly>=5.20
