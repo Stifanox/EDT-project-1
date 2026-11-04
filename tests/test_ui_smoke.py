@@ -55,7 +55,8 @@ def test_fetch_flow_on_sources_page():
     at.text_input(key="src_query").input("pixel").run()
     at.button(key="src_fetch").click().run()
     assert not at.exception, at.exception
-    assert any("Pixel Bakery Tycoon" in s.value for s in at.success)
+    # próbki są już w bazie, więc raport mówi „brak nowych opinii” (info) albo podaje liczby
+    assert any("Pixel Bakery Tycoon" in m.value for m in [*at.success, *at.info])
 
 
 def test_train_flow_on_models_page():

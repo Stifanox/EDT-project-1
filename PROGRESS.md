@@ -11,7 +11,7 @@
 
 | Osoba | Zakres | Etapy ukończone |
 |-------|--------|-----------------|
-| O1 | Fundament, źródła danych (API + scraping), baza, monitorowanie | 4 / 6 (+1 opcjonalny) |
+| O1 | Fundament, źródła danych (API + scraping), baza, monitorowanie | 5 / 6 (+1 opcjonalny) |
 | O2 | Modele sentymentu, trening, ewaluacja | 0 / 7 |
 | O3 | Analiza, dashboard, przeglądarka opinii, alerty | 0 / 5 (+1 opcjonalny) |
 | Wszyscy | Integracja, raport | 0 / 2 |
@@ -36,7 +36,7 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | [D1](docs/tasks/D1.md) | Źródło Steam Reviews API | ✅ DONE | 7/7 | !P0 | 2026-11-04 · `IUserReviewsService/GetAppReviews` (stary `/appreviews` wyłączony przez Valve) |
 | [D2](docs/tasks/D2.md) | Repozytorium SQLite | ✅ DONE | 7/7 | !P0 | 2026-11-04 · dane trwałe w `data/opimon.db` (WAL, gotowe pod CLI z D5) |
 | [D3](docs/tasks/D3.md) | Źródło przez web scraping (Metacritic: filmy i gry) | ✅ DONE | 7/7 | !P0, ~D1 | 2026-11-04 · ≤ 50 najnowszych na pobranie; ok. 18% recenzji nie po angielsku (`language="und"`, filtr w D6) |
-| [D4](docs/tasks/D4.md) | Widok „Źródła danych” | ⬜ TODO | 0/6 | !P0, ~D1, ~D2 | |
+| [D4](docs/tasks/D4.md) | Widok „Źródła danych” | ✅ DONE | 6/6 | !P0, ~D1, ~D2 | 2026-11-04 · dodawanie po nazwie / URL, postęp, usuwanie z potwierdzeniem |
 | [D5](docs/tasks/D5.md) | Monitorowanie: odświeżanie przyrostowe i CLI | ⬜ TODO | 0/6 | !D2, ~D1 | |
 | [D6](docs/tasks/D6.md) | (opcjonalnie) Filtr jakości opinii | ⬜ TODO | 0/4 | ~D1, ~D3 | |
 
@@ -76,7 +76,7 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 
 | Data | Od | Do | Prośba | Status |
 |------|----|----|--------|--------|
-| – | – | – | – | – |
+| 2026-11-04 | O1 | O2, O3 | Streamlit 1.66 ostrzega: `use_container_width` zostanie usunięte. W swoich widokach (`pages/2_Modele.py`, `pages/3_Ewaluacja.py`, `pages/4_Dashboard.py`, `pages/5_Opinie.py`) zamieńcie `use_container_width=True` na `width="stretch"` (O1 zrobił to w `pages/1_Zrodla_danych.py`). | ⬜ otwarta |
 
 ## Dziennik decyzji i zmian kontraktów
 
@@ -93,3 +93,4 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | 2026-11-04 | O1 | [D1] Steam: `store.steampowered.com/appreviews` wyłączony przez Valve 22.10.2026, więc źródło używa `api.steampowered.com/IUserReviewsService/GetAppReviews/v1` (bez klucza). Recenzje „off-topic” (review bomb) są pobierane (`filter_offtopic_activity=false`). |
 | 2026-11-04 | O1 | [D2] `_make_repository()` zwraca `SqliteReviewRepository(config.DB_PATH)`: dane w `data/opimon.db` (WAL), przetrwają restart. Bez kluczy obcych (zachowanie jak w zaślepce); schemat wersjonowany `PRAGMA user_version`. Reset danych = usunięcie pliku. |
 | 2026-11-04 | O1 | [D3] Źródło scrapujące: Metacritic (recenzje użytkowników filmów i gier; IMDb zakazuje w robots.txt, Letterboxd 403, Rotten Tomatoes przez JS). Bez `/search` (zakaz w robots.txt): cel = tytuł / URL / `movie/<slug>`. Nowa zależność `beautifulsoup4`. `HttpClient.get_text(missing_ok=)`. Recenzje nieangielskie mają `language="und"`: O2 i O3 przy ewaluacji / analizie mogą filtrować `language == "en"`. |
+| 2026-11-04 | O1 | [D4] Fasada: opcjonalny `progress: Callable[[float, str], None]` w `fetch_reviews`, `refresh_all` i (wspólnym) `analyze_pending` – zmiana wstecznie zgodna; nowa metoda `remove_target(id) -> int`. |

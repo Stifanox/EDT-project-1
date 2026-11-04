@@ -45,6 +45,13 @@ T = TypeVar("T")
 
 ANALYZE_BATCH = 64
 
+# Postęp długich operacji dla GUI: (ułamek 0–1, komunikat po polsku).
+Progress = Callable[[float, str], None]
+
+
+def _no_progress(fraction: float, message: str) -> None:
+    return None
+
 
 # --------------------------------------------------------------------------- #
 # Fabryki – każda należy do jednej osoby
@@ -142,9 +149,16 @@ class AppServices:
         ready = self.ready_models()
         return ready[0] if ready else None
 
-    def analyze_pending(self, model_name: str | None = None, target_id: str | None = None) -> int:
+    def analyze_pending(
+        self,
+        model_name: str | None = None,
+        target_id: str | None = None,
+        progress: Progress | None = None,
+    ) -> int:
         """Przeanalizuj opinie bez predykcji danego modelu (domyślnie: domyślnego).
-        Zwraca liczbę zapisanych predykcji; model niegotowy lub błąd modelu -> 0."""
+        Zwraca liczbę zapisanych predykcji; model niegotowy lub błąd modelu -> 0.
+        `progress(ułamek, komunikat)` jest wołany po każdej paczce (opcjonalnie)."""
+        report_progress = progress or _no_progress
         name = model_name or self.default_model_name
         if name is None or name not in self.models:
             return 0
@@ -163,6 +177,7 @@ class AppServices:
                     Prediction(r.id, name, float(s)) for r, s in zip(batch, scores, strict=True)
                 )
                 saved += len(batch)
+                report_progress(saved / len(pending), f"Analiza sentymentu: {saved}/{len(pending)}")
         except Exception as exc:  # noqa: BLE001
             self._record_error(f"model:{name}", exc)
         else:
@@ -208,9 +223,12 @@ class AppServices:
         incremental: bool = True,
         analyze: bool = True,
         source: ReviewSource | None = None,
+        progress: Progress | None = None,
     ) -> FetchReport:
         """Pobierz opinie celu, zapisz nowe, przeanalizuj domyślnym modelem.
-        Błędy źródła trafiają do `FetchReport.errors` (nie są rzucane)."""
+        Błędy źródła trafiają do `FetchReport.errors` (nie są rzucane).
+        `progress(ułamek, komunikat)`: pobieranie 0–0.6, zapis 0.6–0.7, analiza 0.7–1."""
+        report_progress = progress or _no_progress
         start = time.perf_counter()
         report = FetchReport(target.id)
         src = source or self.sources.get(source_name)
@@ -218,6 +236,7 @@ class AppServices:
             report.errors.append(f"Nieznane źródło: {source_name}")
             return report
         since = self.repository.latest_review_time(target.id) if incremental else None
+        report_progress(0.0, f"Pobieranie opinii: {target.name} ({src.label})…")
         try:
             reviews = src.fetch(target, limit or config.DEFAULT_FETCH_LIMIT, since)
         except OpimonError as exc:
@@ -227,19 +246,41 @@ class AppServices:
             logger.exception("Źródło %s rzuciło nieoczekiwany wyjątek", source_name)
             report.errors.append(f"Nieoczekiwany błąd źródła {source_name}: {exc}")
             reviews = []
+        report_progress(0.6, f"Zapisywanie {len(reviews)} opinii…")
         self.repository.save_target(target)
         report.fetched = len(reviews)
         report.new = self.repository.add_reviews(reviews)
         if analyze and report.new:
-            report.analyzed = self.analyze_pending(target_id=target.id)
+            report_progress(0.7, "Analiza sentymentu…")
+            report.analyzed = self.analyze_pending(
+                target_id=target.id,
+                progress=lambda f, msg: report_progress(0.7 + 0.3 * f, msg),
+            )
         report.seconds = time.perf_counter() - start
+        report_progress(1.0, "Gotowe.")
         return report
 
-    def refresh_all(self, limit: int | None = None) -> list[FetchReport]:
+    def refresh_all(
+        self, limit: int | None = None, progress: Progress | None = None
+    ) -> list[FetchReport]:
         """Pobierz przyrostowo nowe opinie dla wszystkich zapisanych celów (D5 rozbudowuje)."""
-        return [
-            self.fetch_reviews(t.source, t, limit) for t in self.repository.list_targets()
-        ]
+        report_progress = progress or _no_progress
+        targets = self.repository.list_targets()
+        reports = []
+        for i, t in enumerate(targets):
+            part = 1 / len(targets)
+            reports.append(self.fetch_reviews(
+                t.source, t, limit,
+                progress=lambda f, msg, i=i, part=part: report_progress((i + f) * part, msg),
+            ))
+        return reports
+
+    def remove_target(self, target_id: str) -> int:
+        """Usuń cel z monitorowania razem z jego opiniami i predykcjami.
+        Zwraca liczbę usuniętych opinii; nieznany cel -> 0."""
+        removed = self.repository.count_reviews(target_id)
+        self.repository.remove_target(target_id)
+        return removed
 
     # ----------------------------------------------------------- O2: modele
     def model_infos(self) -> list[ModelInfo]:
