@@ -50,10 +50,10 @@ ANALYZE_BATCH = 64
 # Fabryki – każda należy do jednej osoby
 # --------------------------------------------------------------------------- #
 def _make_repository() -> ReviewRepository:  # O1
-    # TODO(D2): SqliteReviewRepository(config.DB_PATH) – ścieżkę czytaj tutaj, w chwili wywołania.
-    from opimon.storage import InMemoryReviewRepository
+    # config.DB_PATH czytany w chwili wywołania – testy podmieniają go na bazę tymczasową
+    from opimon.storage import SqliteReviewRepository
 
-    return InMemoryReviewRepository()
+    return SqliteReviewRepository(config.DB_PATH)
 
 
 def _make_sources() -> dict[str, ReviewSource]:  # O1

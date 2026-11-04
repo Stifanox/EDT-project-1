@@ -11,7 +11,7 @@
 
 | Osoba | Zakres | Etapy ukończone |
 |-------|--------|-----------------|
-| O1 | Fundament, źródła danych (API + scraping), baza, monitorowanie | 2 / 6 (+1 opcjonalny) |
+| O1 | Fundament, źródła danych (API + scraping), baza, monitorowanie | 3 / 6 (+1 opcjonalny) |
 | O2 | Modele sentymentu, trening, ewaluacja | 0 / 7 |
 | O3 | Analiza, dashboard, przeglądarka opinii, alerty | 0 / 5 (+1 opcjonalny) |
 | Wszyscy | Integracja, raport | 0 / 2 |
@@ -34,7 +34,7 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | ID | Etap | Status | Postęp | Zależności | Uwagi |
 |----|------|--------|--------|------------|-------|
 | [D1](docs/tasks/D1.md) | Źródło Steam Reviews API | ✅ DONE | 7/7 | !P0 | 2026-11-04 · `IUserReviewsService/GetAppReviews` (stary `/appreviews` wyłączony przez Valve) |
-| [D2](docs/tasks/D2.md) | Repozytorium SQLite | ⬜ TODO | 0/7 | !P0 | |
+| [D2](docs/tasks/D2.md) | Repozytorium SQLite | ✅ DONE | 7/7 | !P0 | 2026-11-04 · dane trwałe w `data/opimon.db` (WAL, gotowe pod CLI z D5) |
 | [D3](docs/tasks/D3.md) | Źródło przez web scraping (recenzje filmów) | ⬜ TODO | 0/7 | !P0, ~D1 | kluczowe: web scraping |
 | [D4](docs/tasks/D4.md) | Widok „Źródła danych” | ⬜ TODO | 0/6 | !P0, ~D1, ~D2 | |
 | [D5](docs/tasks/D5.md) | Monitorowanie: odświeżanie przyrostowe i CLI | ⬜ TODO | 0/6 | !D2, ~D1 | |
@@ -91,3 +91,4 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | 2026-11-04 | O1 | [D1] Nowa zależność `requests>=2.32` (sekcja O1). Wspólny klient `opimon/sources/http.py` (bez przekierowań, błędy -> `SourceError`). `steam` pierwszym źródłem w `_make_sources()`, `sample` zostaje jako offline. |
 | 2026-11-04 | O1 | [D1] `tests/fixtures/` jest pakietem (transporty offline, np. `tests.fixtures.steam.fake`). Test wspólny `test_ui_smoke.py::test_fetch_flow_on_sources_page` wybiera jawnie źródło `sample` (bez sieci). |
 | 2026-11-04 | O1 | [D1] Steam: `store.steampowered.com/appreviews` wyłączony przez Valve 22.10.2026, więc źródło używa `api.steampowered.com/IUserReviewsService/GetAppReviews/v1` (bez klucza). Recenzje „off-topic” (review bomb) są pobierane (`filter_offtopic_activity=false`). |
+| 2026-11-04 | O1 | [D2] `_make_repository()` zwraca `SqliteReviewRepository(config.DB_PATH)`: dane w `data/opimon.db` (WAL), przetrwają restart. Bez kluczy obcych (zachowanie jak w zaślepce); schemat wersjonowany `PRAGMA user_version`. Reset danych = usunięcie pliku. |

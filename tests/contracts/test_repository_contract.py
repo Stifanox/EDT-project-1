@@ -10,14 +10,15 @@ from datetime import timedelta
 
 import pytest
 
+from opimon import config
 from opimon.interfaces import ReviewRepository
 from opimon.models import Prediction, Target
-from opimon.storage import InMemoryReviewRepository
+from opimon.storage import InMemoryReviewRepository, SqliteReviewRepository
 from tests.conftest import NOW, make_review
 
 REPOSITORY_FACTORIES = [
     pytest.param(InMemoryReviewRepository, id="memory"),
-    # pytest.param(lambda: SqliteReviewRepository(config.DB_PATH), id="sqlite"),
+    pytest.param(lambda: SqliteReviewRepository(config.DB_PATH), id="sqlite"),
 ]
 
 
