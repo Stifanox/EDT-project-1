@@ -17,5 +17,6 @@ def test_real_data_dir_has_only_sample():
     real = config.ROOT_DIR / "data"
     extra = {p.name for p in real.iterdir()} - {"sample"}
     # Lokalnie po `streamlit run` mogą być pliki runtime – ważne, że nie są w repo (.gitignore).
-    allowed = {"opimon.db", "opimon.db-wal", "opimon.db-shm", "models", "datasets", "cache"}
+    allowed = {"opimon.db", "opimon.db-wal", "opimon.db-shm", "models", "datasets", "cache",
+               "refresh.log"}                      # log crona z README (D5)
     assert extra <= allowed, f"nieoczekiwane pliki w data/: {extra - allowed}"

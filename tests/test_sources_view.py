@@ -10,7 +10,7 @@ from streamlit.testing.v1 import AppTest
 from opimon import config
 from opimon import services as services_mod
 from opimon.errors import SourceError
-from opimon.models import FetchReport
+from opimon.models import FetchReport, Target
 from opimon.services import build_services
 from opimon.sources import MetacriticReviewSource, SampleSource, SteamReviewSource
 from opimon.ui import nav
@@ -215,3 +215,29 @@ def test_reviews_filters(offline_sources):
     df = next(d.value for d in at.dataframe if "Treść" in d.value.columns)
     assert len(df) == 50 and set(df["Obiekt"]) == {"Starfall Odyssey"}
     assert "Link" in df.columns
+
+
+# ------------------------------------------------------------------ dziennik pobrań (D5)
+def test_watchlist_shows_last_fetch_and_errors(monkeypatch):
+    monkeypatch.setattr(config, "LOAD_SAMPLES_IF_EMPTY", False)
+    app = build_services()
+    pixel = SampleSource().find_targets("pixel")[0]
+    app.fetch_reviews("sample", pixel, 5)
+    app.fetch_reviews("sample", Target("sample", "nope", "Nieistniejący"))
+    df = view.watchlist_frame(app).set_index("id")
+    assert df.loc["sample:pixelbakery", "Status"] == "✅ OK"
+    assert df.loc["sample:pixelbakery", "Ostatnie pobranie"] is not None
+    assert df.loc["sample:nope", "Status"].startswith("⚠️ Nieznany cel")
+    log = view.fetch_log_frame(app)
+    assert list(log.columns) == view.LOG_COLUMNS and len(log) == 2
+    assert log["Nowe"].tolist() == [0, 5] and log["Pobrano"].dtype.kind == "i"
+
+
+def test_fetch_log_expander_in_gui(offline_sources):
+    at = _open()
+    at.button(key="src_refresh_all").click().run()
+    assert not at.exception, at.exception
+    log = next(d.value for d in at.dataframe if "Przeanalizowano" in d.value.columns)
+    # 3 wpisy z wczytania próbek przy starcie + 3 z „Odśwież wszystkie”
+    assert len(log) == 6 and set(log["Obiekt"]) == {
+        "Iron Harbor Tactics", "Pixel Bakery Tycoon", "Starfall Odyssey"}

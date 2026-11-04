@@ -50,10 +50,65 @@ ruff check .
 Zbiór IMDB (od etapu M1): pobierz *IMDB Dataset of 50K Movie Reviews* z Kaggle i zapisz jako
 `data/datasets/IMDB Dataset.csv` (szczegóły i alternatywa z Hugging Face: `docs/tasks/M1.md`).
 
+## Monitorowanie z wiersza poleceń (cron / systemd)
+
+CLI korzysta z tej samej bazy co GUI (`data/opimon.db`), a GUI widzi zmiany bez restartu.
+
+```bash
+python -m opimon.cli add steam "Hades II"                 # nazwa, appid lub URL sklepu
+python -m opimon.cli add metacritic "Dune: Part Two"      # tytuł, URL lub movie/<slug>
+python -m opimon.cli list                                 # cele, liczba opinii, ostatnie pobranie
+python -m opimon.cli refresh --limit 200                  # tylko nowe opinie + analiza
+python -m opimon.cli log --limit 20                       # dziennik pobrań
+python -m opimon.cli remove steam:1145350 --yes
+```
+
+Kod wyjścia `refresh`: `0` – wszystko pobrane, `1` – błąd przynajmniej jednego celu (pozostałe
+cele i tak są odświeżane), `2` – złe użycie. Katalog danych można zmienić zmienną `OPIMON_DATA_DIR`.
+
+**cron** (co 30 minut; Steam cache'uje odpowiedzi do 10 minut, więc częściej nie ma sensu):
+
+```cron
+*/30 * * * * cd /ścieżka/do/projektu && .venv/bin/python -m opimon.cli refresh --limit 200 >> data/refresh.log 2>&1
+```
+
+**systemd** (użytkownika), `~/.config/systemd/user/opimon-refresh.service`:
+
+```ini
+[Unit]
+Description=Monitor opinii – pobranie nowych recenzji
+
+[Service]
+Type=oneshot
+WorkingDirectory=/ścieżka/do/projektu
+ExecStart=/ścieżka/do/projektu/.venv/bin/python -m opimon.cli refresh --limit 200
+```
+
+`~/.config/systemd/user/opimon-refresh.timer`:
+
+```ini
+[Unit]
+Description=Monitor opinii – co 30 minut
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+```bash
+systemctl --user daemon-reload && systemctl --user enable --now opimon-refresh.timer
+journalctl --user -u opimon-refresh.service     # wyniki ostatnich uruchomień
+```
+
 ## Struktura
 
 ```
 app.py                      # strona startowa (KPI, linki)
+opimon/cli.py               # CLI: python -m opimon.cli refresh|add|list|remove|log (D5)
 pages/                      # widoki: 1 Źródła danych (O1), 2 Modele, 3 Ewaluacja (O2), 4 Dashboard, 5 Opinie (O3)
 opimon/
   models.py interfaces.py   # KONTRAKTY (zamrożone): modele danych i Protocol-e

@@ -4,7 +4,8 @@ GUI korzysta WYŁĄCZNIE z `AppServices` (przez `opimon.ui.state.get_services()`
 nie tworzy źródeł, modeli ani repozytoriów samodzielnie.
 
 Podmiana zaślepki na prawdziwą implementację = edycja JEDNEJ funkcji-fabryki:
-  * `_make_repository()`, `_make_sources()`     – właściciel O1 (D1, D2, D3)
+  * `_make_repository()`, `_make_sources()`,
+    `_make_fetch_log()`                          – właściciel O1 (D1, D2, D3, D5)
   * `_make_models()`, `_make_training_data()`   – właściciel O2 (M1–M4)
   * `_make_analytics()`                         – właściciel O3 (A1, A4, A5)
 Nie edytuj fabryk innych osób – unikamy konfliktów w git.
@@ -18,7 +19,7 @@ from __future__ import annotations
 import logging
 import time
 from collections.abc import Callable
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal, TypeVar
 
 from opimon import config
@@ -39,6 +40,7 @@ from opimon.models import (
     ScoredReview,
     Target,
 )
+from opimon.storage.fetch_log import FetchLog
 
 logger = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -61,6 +63,13 @@ def _make_repository() -> ReviewRepository:  # O1
     from opimon.storage import SqliteReviewRepository
 
     return SqliteReviewRepository(config.DB_PATH)
+
+
+def _make_fetch_log() -> FetchLog:  # O1
+    # dziennik pobrań w tej samej bazie co opinie (D5); ścieżka czytana w chwili wywołania
+    from opimon.storage import SqliteFetchLog
+
+    return SqliteFetchLog(config.DB_PATH)
 
 
 def _make_sources() -> dict[str, ReviewSource]:  # O1
@@ -101,10 +110,11 @@ def _stub_factories() -> dict[str, Callable[[], object]]:
     from opimon.analytics import BasicAnalytics
     from opimon.sentiment import LexiconStubModel, SampleTrainingData
     from opimon.sources import SampleSource
-    from opimon.storage import InMemoryReviewRepository
+    from opimon.storage import InMemoryFetchLog, InMemoryReviewRepository
 
     return {
         "repository": InMemoryReviewRepository,
+        "fetch_log": InMemoryFetchLog,
         "sources": lambda: {"sample": SampleSource()},
         "models": lambda: {"lexicon_stub": LexiconStubModel()},
         "training_data": lambda: {"sample_movies": SampleTrainingData()},
@@ -124,8 +134,12 @@ class AppServices:
         training_data: dict[str, TrainingDataProvider],
         analytics: OpinionAnalytics,
         module_errors: dict[str, str] | None = None,
+        fetch_log: FetchLog | None = None,
     ) -> None:
+        from opimon.storage import InMemoryFetchLog
+
         self.repository = repository
+        self.fetch_log: FetchLog = fetch_log if fetch_log is not None else InMemoryFetchLog()
         self.sources = sources
         self.models = models
         self.training_data = training_data
@@ -230,10 +244,12 @@ class AppServices:
         `progress(ułamek, komunikat)`: pobieranie 0–0.6, zapis 0.6–0.7, analiza 0.7–1."""
         report_progress = progress or _no_progress
         start = time.perf_counter()
+        started_at = datetime.now(UTC)
         report = FetchReport(target.id)
         src = source or self.sources.get(source_name)
         if src is None:
             report.errors.append(f"Nieznane źródło: {source_name}")
+            self._log_fetch(report, source_name, started_at)
             return report
         since = self.repository.latest_review_time(target.id) if incremental else None
         report_progress(0.0, f"Pobieranie opinii: {target.name} ({src.label})…")
@@ -257,8 +273,18 @@ class AppServices:
                 progress=lambda f, msg: report_progress(0.7 + 0.3 * f, msg),
             )
         report.seconds = time.perf_counter() - start
+        self._log_fetch(report, source_name, started_at)
         report_progress(1.0, "Gotowe.")
         return report
+
+    def _log_fetch(self, report: FetchReport, source_name: str, started_at: datetime) -> None:
+        """Wpis w dzienniku pobrań; błąd dziennika nie może przerwać pobierania."""
+        from opimon.storage import FetchLogEntry
+
+        try:
+            self.fetch_log.record(FetchLogEntry.from_report(report, source_name, started_at))
+        except Exception as exc:  # noqa: BLE001
+            self._record_error("fetch_log", exc)
 
     def refresh_all(
         self, limit: int | None = None, progress: Progress | None = None
@@ -269,10 +295,16 @@ class AppServices:
         reports = []
         for i, t in enumerate(targets):
             part = 1 / len(targets)
-            reports.append(self.fetch_reviews(
-                t.source, t, limit,
-                progress=lambda f, msg, i=i, part=part: report_progress((i + f) * part, msg),
-            ))
+            try:
+                reports.append(self.fetch_reviews(
+                    t.source, t, limit,
+                    progress=lambda f, msg, i=i, part=part: report_progress((i + f) * part, msg),
+                ))
+            except Exception as exc:  # noqa: BLE001 – jeden cel nie może przerwać pozostałych
+                logger.exception("Odświeżanie %s nie powiodło się", t.id)
+                report = FetchReport(t.id, errors=[f"Nieoczekiwany błąd: {exc}"])
+                self._log_fetch(report, t.source, datetime.now(UTC))
+                reports.append(report)
         return reports
 
     def remove_target(self, target_id: str) -> int:
@@ -280,6 +312,7 @@ class AppServices:
         Zwraca liczbę usuniętych opinii; nieznany cel -> 0."""
         removed = self.repository.count_reviews(target_id)
         self.repository.remove_target(target_id)
+        self.fetch_log.remove_target(target_id)
         return removed
 
     # ----------------------------------------------------------- O2: modele
@@ -371,6 +404,7 @@ def build_services(load_samples: bool = True) -> AppServices:
         training_data=_build("training_data", mod._make_training_data, errors),
         analytics=_build("analytics", mod._make_analytics, errors),
         module_errors=errors,
+        fetch_log=_build("fetch_log", mod._make_fetch_log, errors),
     )
     if load_samples:
         services.load_samples_if_empty()

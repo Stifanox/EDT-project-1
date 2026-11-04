@@ -3,6 +3,7 @@
 * `journal_mode=WAL` – GUI i CLI (D5) mogą jednocześnie czytać i pisać do jednego pliku;
 * `busy_timeout` – drugi proces czeka na blokadę zamiast od razu zgłaszać błąd;
 * schemat tworzony przez `CREATE … IF NOT EXISTS`, wersja w `PRAGMA user_version`.
+  Migracja 1 -> 2 (D5) to tylko nowa tabela `fetch_log`, więc wystarcza `CREATE … IF NOT EXISTS`.
 
 Daty zapisujemy jako tekst ISO 8601 w UTC o stałej szerokości
 (`2026-11-04T16:39:28.000000+00:00`), więc porównania i sortowanie tekstowe w SQL są poprawne.
@@ -14,7 +15,7 @@ import sqlite3
 from datetime import UTC, datetime
 from pathlib import Path
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2          # 1: targets/reviews/predictions (D2) · 2: fetch_log (D5)
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS targets (
@@ -51,6 +52,19 @@ CREATE TABLE IF NOT EXISTS predictions (
     PRIMARY KEY (review_id, model_name)
 );
 CREATE INDEX IF NOT EXISTS ix_predictions_model ON predictions (model_name);
+
+CREATE TABLE IF NOT EXISTS fetch_log (      -- dziennik pobrań (D5)
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    target_id   TEXT NOT NULL,
+    source      TEXT NOT NULL,
+    started_at  TEXT NOT NULL,          -- ISO 8601 UTC
+    seconds     REAL NOT NULL,
+    fetched     INTEGER NOT NULL,
+    new         INTEGER NOT NULL,
+    analyzed    INTEGER NOT NULL,
+    errors      TEXT NOT NULL DEFAULT '[]'   -- JSON: lista komunikatów
+);
+CREATE INDEX IF NOT EXISTS ix_fetch_log_target ON fetch_log (target_id, started_at);
 """
 
 

@@ -2,42 +2,23 @@
 
 from __future__ import annotations
 
-import re
-
 import pandas as pd
 
-from opimon.errors import SourceError
-from opimon.interfaces import ReviewSource
-from opimon.models import FetchReport, ScoredReview, Target
+from opimon.models import FetchReport, ScoredReview
 from opimon.services import AppServices
+from opimon.sources.resolve import resolve_target
+from opimon.storage import FetchLogEntry
 
-_STEAM_URL_RE = re.compile(r"store\.steampowered\.com/app/(\d+)", re.I)
-
-WATCHLIST_COLUMNS = ["Obiekt", "Źródło", "Opinie", "Najnowsza opinia", "Strona", "id"]
+WATCHLIST_COLUMNS = ["Obiekt", "Źródło", "Opinie", "Najnowsza opinia", "Ostatnie pobranie",
+                     "Status", "Strona", "id"]
+LOG_COLUMNS = ["Czas", "Obiekt", "Źródło", "Pobrano", "Nowe", "Przeanalizowano", "Czas [s]",
+               "Błędy"]
 REVIEW_COLUMNS = ["Data", "Obiekt", "Źródło", "Sentyment", "P(pozytywny)", "Ocena autora",
                   "Etykieta źródła", "Treść", "Link", "id"]
 
 
-def resolve_manual_target(source: ReviewSource, text: str) -> Target:
-    """Identyfikator lub URL wpisany ręcznie -> cel. Nieznany -> `SourceError` po polsku.
-
-    * Steam: appid (`570`) albo URL sklepu (`https://store.steampowered.com/app/570/...`);
-    * pozostałe źródła: to, co rozumie `find_targets` (np. Metacritic: URL lub `movie/<slug>`),
-      bierzemy pierwszy wynik.
-    """
-    value = text.strip()
-    if not value:
-        raise SourceError("Podaj identyfikator lub adres URL.")
-    from_appid = getattr(source, "target_from_appid", None)
-    if callable(from_appid):
-        if m := _STEAM_URL_RE.search(value):
-            return from_appid(m.group(1))
-        if value.isdigit():
-            return from_appid(value)
-    found = source.find_targets(value, limit=1)
-    if not found:
-        raise SourceError(f"{source.label}: nie znaleziono obiektu „{value}”.")
-    return found[0]
+# Przeniesione do `opimon.sources.resolve` (używa też CLI z D5); nazwa zostaje dla zgodności.
+resolve_manual_target = resolve_target
 
 
 def fetch_summary(report: FetchReport, name: str) -> tuple[str, str]:
@@ -72,15 +53,42 @@ def watchlist_frame(services: AppServices, source_name: str | None = None) -> pd
     for t in services.repository.list_targets():
         if source_name is not None and t.source != source_name:
             continue
+        last = services.fetch_log.last(t.id)
         rows.append({
             "Obiekt": t.name,
             "Źródło": source_label(services, t.source),
             "Opinie": services.repository.count_reviews(t.id),
             "Najnowsza opinia": services.repository.latest_review_time(t.id),
+            "Ostatnie pobranie": last.started_at if last else None,
+            "Status": status_text(last),
             "Strona": t.url,
             "id": t.id,
         })
     return pd.DataFrame(rows, columns=WATCHLIST_COLUMNS)
+
+
+def status_text(entry: FetchLogEntry | None) -> str:
+    if entry is None:
+        return "–"
+    return "✅ OK" if entry.ok else f"⚠️ {entry.errors[0]}"
+
+
+def fetch_log_frame(services: AppServices, limit: int = 50) -> pd.DataFrame:
+    """Dziennik pobrań (od najnowszego) – liczby jako liczby."""
+    entries = services.fetch_log.history(limit=limit)
+    return pd.DataFrame(
+        [{
+            "Czas": e.started_at,
+            "Obiekt": services.target_name(e.target_id),
+            "Źródło": source_label(services, e.source),
+            "Pobrano": e.fetched,
+            "Nowe": e.new,
+            "Przeanalizowano": e.analyzed,
+            "Czas [s]": round(e.seconds, 2),
+            "Błędy": "; ".join(e.errors),
+        } for e in entries],
+        columns=LOG_COLUMNS,
+    )
 
 
 def latest_reviews(

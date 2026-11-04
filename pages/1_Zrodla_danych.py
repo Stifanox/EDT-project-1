@@ -33,6 +33,10 @@ MANUAL_HINTS = {
 }
 
 
+def _fmt(value) -> str:
+    return "–" if value is None or pd.isna(value) else value.strftime("%Y-%m-%d %H:%M")
+
+
 def run_fetch(source_name: str, target: Target, limit: int) -> None:
     """Pobierz z paskiem postępu, zapisz raport jako komunikat i przeładuj stronę."""
     bar = st.progress(0.0, text=f"Pobieranie: {target.name}…")
@@ -125,19 +129,21 @@ else:
             for err in r.errors:
                 flash(f"{services.target_name(r.target_id)}: {err}", "error")
         st.rerun()
-    header = st.columns([4, 3, 1, 2, 3])
-    for col, title in zip(header, ["Obiekt", "Źródło", "Opinie", "Najnowsza opinia", ""],
-                          strict=True):
+    widths = [4, 3, 1, 2, 3, 3]
+    header = st.columns(widths)
+    titles = ["Obiekt", "Źródło", "Opinie", "Najnowsza opinia", "Ostatnie pobranie", ""]
+    for col, title in zip(header, titles, strict=True):
         col.markdown(f"**{title}**")
     for row in watch.to_dict("records"):
         tid = row["id"]
-        c1, c2, c3, c4, c5 = st.columns([4, 3, 1, 2, 3], vertical_alignment="center")
+        c1, c2, c3, c4, c5, c6 = st.columns(widths, vertical_alignment="center")
         c1.markdown(f"[{row['Obiekt']}]({row['Strona']})" if row["Strona"] else row["Obiekt"])
         c2.write(row["Źródło"])
         c3.write(str(row["Opinie"]))
-        latest = row["Najnowsza opinia"]
-        c4.write("–" if pd.isna(latest) else latest.strftime("%Y-%m-%d %H:%M"))
-        b1, b2, b3 = c5.columns(3)
+        c4.write(_fmt(row["Najnowsza opinia"]))
+        c5.markdown(f"{_fmt(row['Ostatnie pobranie'])} {row['Status']}",
+                 help=None if row["Status"].startswith(("✅", "–")) else row["Status"])
+        b1, b2, b3 = c6.columns(3)
         if b1.button("🔄", key=f"src_refresh_{tid}", help="Pobierz nowe opinie"):
             target = services.repository.get_target(tid)
             run_fetch(target.source, target, limit)
@@ -146,6 +152,15 @@ else:
         if b3.button("🗑️", key=f"src_remove_{tid}", help="Usuń z monitorowania"):
             st.session_state[REMOVE_KEY] = tid
             st.rerun()
+
+    with st.expander("📜 Dziennik pobrań (także z CLI: `python -m opimon.cli refresh`)"):
+        log = view.fetch_log_frame(services)
+        if log.empty:
+            st.caption("Brak wpisów.")
+        else:
+            st.dataframe(log, hide_index=True, width="stretch", column_config={
+                "Czas": st.column_config.DatetimeColumn(format="YYYY-MM-DD HH:mm:ss"),
+            })
 
 # --------------------------------------------------------------------------- opinie
 st.subheader("Najnowsze opinie")
