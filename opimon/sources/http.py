@@ -26,6 +26,12 @@ class JsonGetter(Protocol):
     def get_json(self, url: str, params: dict[str, Any] | None = None) -> Any: ...
 
 
+class TextGetter(Protocol):
+    def get_text(
+        self, url: str, params: dict[str, Any] | None = None, missing_ok: bool = False
+    ) -> str | None: ...
+
+
 class HttpClient:
     def __init__(
         self,
@@ -50,7 +56,19 @@ class HttpClient:
                 self._sleep(remaining)
         self._last_request = self._clock()
 
-    def get(self, url: str, params: dict[str, Any] | None = None) -> requests.Response:
+    def get_text(
+        self, url: str, params: dict[str, Any] | None = None, missing_ok: bool = False
+    ) -> str | None:
+        """Treść strony (HTML). `missing_ok=True`: HTTP 404 -> None zamiast `SourceError`."""
+        resp = self.get(url, params, missing_ok=missing_ok)
+        if resp is None:
+            return None
+        resp.encoding = resp.encoding or "utf-8"
+        return resp.text
+
+    def get(
+        self, url: str, params: dict[str, Any] | None = None, missing_ok: bool = False
+    ) -> requests.Response | None:
         self._wait_for_slot()
         try:
             resp = self._session.get(
@@ -84,12 +102,19 @@ class HttpClient:
                 f"{self.service}: serwis przekierował zapytanie ({where}) zamiast zwrócić dane. "
                 "API może być niedostępne z tej sieci albo zmieniło adres."
             )
+        if status == 404 and missing_ok:
+            return None
+        if status == 403:
+            raise SourceError(
+                f"{self.service}: serwis odmówił dostępu (HTTP 403). Spróbuj później."
+            )
         if status >= 400:
             raise SourceError(f"{self.service}: serwis zwrócił błąd HTTP {status}.")
         return resp
 
     def get_json(self, url: str, params: dict[str, Any] | None = None) -> Any:
         resp = self.get(url, params)
+        assert resp is not None
         try:
             return resp.json()
         except ValueError as exc:

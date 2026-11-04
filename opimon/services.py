@@ -57,10 +57,14 @@ def _make_repository() -> ReviewRepository:  # O1
 
 
 def _make_sources() -> dict[str, ReviewSource]:  # O1
-    # TODO(D3): źródło scrapujące. Kolejność = kolejność w GUI (pierwsze = domyślne).
-    from opimon.sources import SampleSource, SteamReviewSource
+    # Kolejność = kolejność w GUI (pierwsze = domyślne). `sample` = tryb offline.
+    from opimon.sources import MetacriticReviewSource, SampleSource, SteamReviewSource
 
-    return {"steam": SteamReviewSource(), "sample": SampleSource()}
+    return {
+        "steam": SteamReviewSource(),
+        "metacritic": MetacriticReviewSource(),
+        "sample": SampleSource(),
+    }
 
 
 def _make_models() -> dict[str, SentimentModel]:  # O2

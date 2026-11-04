@@ -4,7 +4,7 @@ pandas>=2.2
 
 # --- źródła danych (O1: D1, D3) ---
 requests>=2.32              # D1: Steam API
-# beautifulsoup4>=4.12
+beautifulsoup4>=4.12        # D3: web scraping (Metacritic)
 
 # --- modele sentymentu (O2: M1–M4) ---
 # scikit-learn>=1.5

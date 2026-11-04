@@ -16,13 +16,17 @@ import pytest
 from opimon.errors import SourceError
 from opimon.interfaces import ReviewSource
 from opimon.models import Target
-from opimon.sources import SampleSource, SteamReviewSource
+from opimon.sources import MetacriticReviewSource, SampleSource, SteamReviewSource
+from tests.fixtures.metacritic.fake import make_offline_metacritic_source
 from tests.fixtures.steam.fake import make_offline_steam_source
 
 SOURCE_CASES = [
     pytest.param((SampleSource, "starfall"), id="sample"),
     pytest.param((make_offline_steam_source, "dota"), id="steam-offline"),
     pytest.param((SteamReviewSource, "dota"), id="steam-live", marks=pytest.mark.network),
+    pytest.param((make_offline_metacritic_source, "Dune: Part Two"), id="metacritic-offline"),
+    pytest.param((MetacriticReviewSource, "Dune: Part Two"), id="metacritic-live",
+                 marks=pytest.mark.network),
 ]
 
 
