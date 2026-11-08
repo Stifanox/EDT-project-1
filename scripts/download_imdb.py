@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import csv
 import sys
+import time
 import urllib.request
 from pathlib import Path
 
@@ -30,6 +31,8 @@ def main() -> None:
             writer = csv.writer(output)
             writer.writerow(["review", "sentiment", "split"])
             for split in ("train", "test"):
+                if split == "test":
+                    time.sleep(config.REQUEST_DELAY_S)
                 url = ("https://huggingface.co/datasets/stanfordnlp/imdb/resolve/main/"
                        f"plain_text/{split}-00000-of-00001.parquet")
                 request = urllib.request.Request(
@@ -38,7 +41,7 @@ def main() -> None:
                 part = config.DATASETS_DIR / f"imdb-{split}.parquet"
                 print(f"Pobieranie {split}…", flush=True)
                 with (
-                    urllib.request.urlopen(request, timeout=120) as response,
+                    urllib.request.urlopen(request, timeout=config.HTTP_TIMEOUT_S) as response,
                     part.open("wb") as fh,
                 ):
                     while chunk := response.read(1024 * 1024):

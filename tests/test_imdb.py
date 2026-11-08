@@ -70,9 +70,31 @@ def test_official_split_and_duplicate_isolation():
     assert any(ex.text == "test negative movie" for ex in dataset.test)
 
 
-@pytest.mark.parametrize("content", ["text,label\nx,positive", "review,sentiment\nx,wrong"])
+@pytest.mark.parametrize("content", ["text,label\nx,positive", "review,sentiment\nx,wrong",
+                                     "review,sentiment\nincomplete"])
 def test_invalid_csv_has_readable_error(content):
     config.DATASETS_DIR.mkdir(parents=True)
     (config.DATASETS_DIR / "IMDB Dataset.csv").write_text(content)
     with pytest.raises(DatasetUnavailableError, match="IMDB"):
         ImdbTrainingData().load()
+
+
+def test_parallel_cache_writers():
+    from concurrent.futures import ThreadPoolExecutor
+
+    install_imdb_fixture()
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        datasets = list(executor.map(lambda _: ImdbTrainingData().load(), range(8)))
+    assert all(dataset.train == datasets[0].train for dataset in datasets)
+    assert not list(config.CACHE_DIR.glob("*.tmp"))
+
+
+def test_imbalanced_kaggle_csv_is_balanced():
+    install_imdb_fixture()
+    path = config.DATASETS_DIR / "IMDB Dataset.csv"
+    with path.open("a", encoding="utf-8") as handle:
+        for i in range(8):
+            handle.write(f"Extra good movie number {i},positive\n")
+    dataset = ImdbTrainingData().load()
+    for part in (dataset.train, dataset.test):
+        assert 2 * sum(ex.label is Sentiment.POSITIVE for ex in part) == len(part)

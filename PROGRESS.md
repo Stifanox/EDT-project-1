@@ -52,6 +52,18 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | [M6](docs/tasks/M6.md) | Widok „Modele” | ✅ DONE | 5/5 | !P0, ~M3 | 2026-11-08 · trening, wyjaśnienia, przykłady, analiza i AppTest |
 | [M7](docs/tasks/M7.md) | Widok „Ewaluacja i porównanie modeli” | ✅ DONE | 5/5 | ~M5 | 2026-11-08 · porównanie, macierz, wykresy, błędy i AppTest |
 
+### Podsumowanie O2 — Karol, 2026-11-08
+
+- M1–M7 ukończone: IMDB, VADER, trwały TF-IDF + LR, opcjonalny DistilBERT CPU,
+  cache ewaluacji i porównań, kompletne widoki Modele/Ewaluacja z testami GUI.
+- Pełny IMDB: trening TF-IDF 11,58 s, accuracy 90,53% na 24 532 recenzjach testowych.
+  Uczciwe porównanie trzech modeli na wspólnych próbkach i ograniczenia w M5.
+- Weryfikacja końcowa: 130 testów zaliczonych, 3 pominięte (brak treningu dla modeli
+  niewymagających treningu), w tym rzeczywisty kontrakt DistilBERT; Ruff czysty,
+  Streamlit HTTP 200. Dane, wagi oraz cache pozostają poza repo.
+- Kod O1/O3 i zamrożone interfejsy nie były zmieniane. Integracja X1 i końcowy raport
+  zespołowy X2 wymagają wkładu pozostałych osób; materiał O2 i prośby są zapisane poniżej.
+
 ## O3 – Analiza i monitoring (właściciel: O3)
 
 | ID | Etap | Status | Postęp | Zależności | Uwagi |
