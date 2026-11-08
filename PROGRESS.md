@@ -12,7 +12,7 @@
 | Osoba | Zakres | Etapy ukończone |
 |-------|--------|-----------------|
 | O1 | Fundament, źródła danych (API + scraping), baza, monitorowanie | 1 / 6 (+1 opcjonalny) |
-| O2 | Modele sentymentu, trening, ewaluacja | 5 / 7 |
+| O2 | Modele sentymentu, trening, ewaluacja | 6 / 7 |
 | O3 | Analiza, dashboard, przeglądarka opinii, alerty | 0 / 5 (+1 opcjonalny) |
 | Wszyscy | Integracja, raport | 0 / 2 |
 
@@ -49,7 +49,7 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | [M3](docs/tasks/M3.md) | TF-IDF + regresja logistyczna | ✅ DONE | 7/7 | !M1 | 2026-11-08 · IMDB accuracy 90,53%, trening 11,58 s; wariant NB |
 | [M4](docs/tasks/M4.md) | Model transformerowy (DistilBERT SST-2) | ✅ DONE | 5/5 | !P0 | 2026-11-08 · kontrakt slow OK; IMDB n=1000 i Steam live n=199 |
 | [M5](docs/tasks/M5.md) | Ewaluacja i porównanie modeli (ta sama vs inna domena) | ✅ DONE | 6/6 | !M1, ~M2, ~M3, ~M4, ~D1 | 2026-11-08 · wspólna próba IMDB/Steam, cache, błędy i wnioski |
-| [M6](docs/tasks/M6.md) | Widok „Modele” | 🟦 IN_PROGRESS | 0/5 | !P0, ~M3 | 2026-11-08 · trening, wyjaśnienia i AppTest |
+| [M6](docs/tasks/M6.md) | Widok „Modele” | ✅ DONE | 5/5 | !P0, ~M3 | 2026-11-08 · trening, wyjaśnienia, przykłady, analiza i AppTest |
 | [M7](docs/tasks/M7.md) | Widok „Ewaluacja i porównanie modeli” | ⬜ TODO | 0/5 | ~M5 | |
 
 ## O3 – Analiza i monitoring (właściciel: O3)
