@@ -12,7 +12,7 @@
 | Osoba | Zakres | Etapy ukończone |
 |-------|--------|-----------------|
 | O1 | Fundament, źródła danych (API + scraping), baza, monitorowanie | 1 / 6 (+1 opcjonalny) |
-| O2 | Modele sentymentu, trening, ewaluacja | 3 / 7 |
+| O2 | Modele sentymentu, trening, ewaluacja | 4 / 7 |
 | O3 | Analiza, dashboard, przeglądarka opinii, alerty | 0 / 5 (+1 opcjonalny) |
 | Wszyscy | Integracja, raport | 0 / 2 |
 
@@ -47,8 +47,8 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | [M1](docs/tasks/M1.md) | Zbiór treningowy IMDB | ✅ DONE | 6/6 | !P0 | 2026-11-08 · CSV/HF, podział, cache 0,43 s; testy i statystyki |
 | [M2](docs/tasks/M2.md) | Model słownikowy VADER | ✅ DONE | 5/5 | !P0 | 2026-11-08 · kontrakt, IMDB i Steam live (199); wyniki w M2 |
 | [M3](docs/tasks/M3.md) | TF-IDF + regresja logistyczna | ✅ DONE | 7/7 | !M1 | 2026-11-08 · IMDB accuracy 90,53%, trening 11,58 s; wariant NB |
-| [M4](docs/tasks/M4.md) | Model transformerowy (DistilBERT SST-2) | ⬜ TODO | 0/5 | !P0 | testy `slow` |
-| [M5](docs/tasks/M5.md) | Ewaluacja i porównanie modeli (ta sama vs inna domena) | ⬜ TODO | 0/6 | !M1, ~M2, ~M3, ~M4, ~D1 | rdzeń merytoryczny |
+| [M4](docs/tasks/M4.md) | Model transformerowy (DistilBERT SST-2) | ✅ DONE | 5/5 | !P0 | 2026-11-08 · kontrakt slow OK; IMDB n=1000 i Steam live n=199 |
+| [M5](docs/tasks/M5.md) | Ewaluacja i porównanie modeli (ta sama vs inna domena) | 🟦 IN_PROGRESS | 0/6 | !M1, ~M2, ~M3, ~M4, ~D1 | 2026-11-08 · porównania i cache wyników |
 | [M6](docs/tasks/M6.md) | Widok „Modele” | ⬜ TODO | 0/5 | !P0, ~M3 | |
 | [M7](docs/tasks/M7.md) | Widok „Ewaluacja i porównanie modeli” | ⬜ TODO | 0/5 | ~M5 | |
 
@@ -92,3 +92,4 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | 2026-11-08 | O2 | M1: IMDB jest pierwszym providerem; próbka offline pozostaje jawnie dostępna jako `sample_movies`. Testy P0 wybierają ją jawnie, zachowując intencję testowania bez sieci i pełnego zbioru. Eksport Hugging Face zachowuje oficjalny podział, usuwa duplikaty/konflikty po czyszczeniu i równoważy klasy osobno w obu częściach. |
 | 2026-11-08 | O2 | M2: dodano zależność `vaderSentiment` w sekcji O2; VADER jest pierwszym gotowym modelem do M3. Test fasady sprawdza nowy model domyślny zamiast nazwy zaślepki. Score VADER to liniowo przeskalowany compound, bez kalibracji probabilistycznej. |
 | 2026-11-08 | O2 | M3: zależności `scikit-learn`, `joblib` w sekcji O2. `_make_models()` rejestruje TF-IDF jako pierwszy, VADER jako gotowy fallback przed treningiem; zaślepki pozostają w awaryjnej fabryce P0 i testach kontraktowych. Wspólne testy fasady sprawdzają prawdziwy model zamiast zaślepki, z tą samą intencją treningu, ponownej analizy i odporności. |
+| 2026-11-08 | O2 | M4: zależności `transformers>=4.44,<5` i `torch>=2.3` w sekcji O2. Nowa opcjonalna metoda O2 `AppServices.load_model(name, allow_download=False)` udostępnia jawne pobranie wag; zwykły start i odświeżenia GUI nie używają sieci. Transformer jest trzeci w fabryce, CPU i limit 512 tokenów. |
