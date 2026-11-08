@@ -64,9 +64,10 @@ def _make_sources() -> dict[str, ReviewSource]:  # O1
 
 
 def _make_models() -> dict[str, SentimentModel]:  # O2
-    from opimon.sentiment import TfidfLogRegModel, VaderModel
+    from opimon.sentiment import TfidfLogRegModel, TransformerModel, VaderModel
 
-    return {"tfidf_lr": TfidfLogRegModel(), "vader": VaderModel()}
+    return {"tfidf_lr": TfidfLogRegModel(), "vader": VaderModel(),
+            "distilbert": TransformerModel()}
 
 
 def _make_training_data() -> dict[str, TrainingDataProvider]:  # O2
@@ -235,6 +236,14 @@ class AppServices:
         ]
 
     # ----------------------------------------------------------- O2: modele
+    def load_model(self, model_name: str, allow_download: bool = False) -> ModelInfo:
+        """Jawne wczytanie opcjonalnych wag; odświeżenie GUI samo ich nie pobiera."""
+        model = self.models[model_name]
+        loader = getattr(model, "load", None)
+        if loader is not None:
+            loader(allow_download=allow_download)
+        return model.info()
+
     def model_infos(self) -> list[ModelInfo]:
         infos = []
         for name, model in self.models.items():
