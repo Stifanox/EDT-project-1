@@ -12,9 +12,11 @@ from opimon.errors import DatasetUnavailableError
 from opimon.interfaces import TrainingDataProvider
 from opimon.models import Dataset, Sentiment
 from opimon.sentiment import SampleTrainingData
+from tests.test_imdb import install_imdb_fixture
 
 PROVIDER_FACTORIES = [
     pytest.param(SampleTrainingData, id="sample_movies"),
+    pytest.param(install_imdb_fixture, id="imdb"),
 ]
 
 

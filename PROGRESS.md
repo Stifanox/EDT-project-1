@@ -12,7 +12,7 @@
 | Osoba | Zakres | Etapy ukończone |
 |-------|--------|-----------------|
 | O1 | Fundament, źródła danych (API + scraping), baza, monitorowanie | 1 / 6 (+1 opcjonalny) |
-| O2 | Modele sentymentu, trening, ewaluacja | 0 / 7 |
+| O2 | Modele sentymentu, trening, ewaluacja | 1 / 7 |
 | O3 | Analiza, dashboard, przeglądarka opinii, alerty | 0 / 5 (+1 opcjonalny) |
 | Wszyscy | Integracja, raport | 0 / 2 |
 
@@ -44,7 +44,7 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 
 | ID | Etap | Status | Postęp | Zależności | Uwagi |
 |----|------|--------|--------|------------|-------|
-| [M1](docs/tasks/M1.md) | Zbiór treningowy IMDB | ⬜ TODO | 0/6 | !P0 | |
+| [M1](docs/tasks/M1.md) | Zbiór treningowy IMDB | ✅ DONE | 6/6 | !P0 | 2026-11-08 · CSV/HF, podział, cache 0,43 s; testy i statystyki |
 | [M2](docs/tasks/M2.md) | Model słownikowy VADER | ⬜ TODO | 0/5 | !P0 | |
 | [M3](docs/tasks/M3.md) | TF-IDF + regresja logistyczna | ⬜ TODO | 0/7 | !M1 | domyślny model |
 | [M4](docs/tasks/M4.md) | Model transformerowy (DistilBERT SST-2) | ⬜ TODO | 0/5 | !P0 | testy `slow` |
@@ -88,3 +88,4 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | 2026-11-04 | O1 | Etykieta ze źródła (`Review.label`: Steam `voted_up`, ocena IMDb ≥ 7 / ≤ 4) oddzielona od predykcji; służy do ewaluacji na danych z Internetu (M5). |
 | 2026-11-04 | O1 | Domyślny model = pierwszy gotowy w `_make_models()` (kolejność ustala O2). Nowo pobrane opinie są analizowane nim automatycznie. |
 | 2026-11-04 | O1 | Kontrakty P0 zamrożone: `models.py`, `interfaces.py`, `errors.py`, `ui/nav.py` – tylko zmiany wstecznie zgodne z wpisem tutaj. |
+| 2026-11-08 | O2 | M1: IMDB jest pierwszym providerem; próbka offline pozostaje jawnie dostępna jako `sample_movies`. Testy P0 wybierają ją jawnie, zachowując intencję testowania bez sieci i pełnego zbioru. Eksport Hugging Face zachowuje oficjalny podział, usuwa duplikaty/konflikty po czyszczeniu i równoważy klasy osobno w obu częściach. |

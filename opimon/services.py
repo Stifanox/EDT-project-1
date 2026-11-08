@@ -72,10 +72,9 @@ def _make_models() -> dict[str, SentimentModel]:  # O2
 
 
 def _make_training_data() -> dict[str, TrainingDataProvider]:  # O2
-    # TODO(M1): ImdbTrainingData. Pierwszy = domyślny.
-    from opimon.sentiment import SampleTrainingData
+    from opimon.sentiment import ImdbTrainingData, SampleTrainingData
 
-    return {"sample_movies": SampleTrainingData()}
+    return {"imdb": ImdbTrainingData(), "sample_movies": SampleTrainingData()}
 
 
 def _make_analytics() -> OpinionAnalytics:  # O3

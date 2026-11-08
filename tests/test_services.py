@@ -53,10 +53,10 @@ def test_fetch_source_error_is_reported_not_raised():
 
 def test_train_reanalyzes_and_evaluates(app):
     assert "wordcount_stub" not in app.ready_models()
-    info = app.train_model("wordcount_stub")
+    info = app.train_model("wordcount_stub", "sample_movies")
     assert info.ready and info.train_size == 180
     assert app.repository.reviews_without_prediction("wordcount_stub") == []
-    test_res = app.evaluate_model("wordcount_stub", on="test")
+    test_res = app.evaluate_model("wordcount_stub", on="test", dataset_name="sample_movies")
     live_res = app.evaluate_model("wordcount_stub", on="live", target_id="sample:starfall")
     assert test_res.n == 60 and test_res.accuracy > 0.8
     assert live_res.n == app.repository.count_reviews("sample:starfall")
