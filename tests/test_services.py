@@ -52,12 +52,13 @@ def test_fetch_source_error_is_reported_not_raised():
 
 
 def test_train_reanalyzes_and_evaluates(app):
-    assert "wordcount_stub" not in app.ready_models()
-    info = app.train_model("wordcount_stub", "sample_movies")
+    assert "tfidf_lr" not in app.ready_models()
+    info = app.train_model("tfidf_lr", "sample_movies")
     assert info.ready and info.train_size == 180
-    assert app.repository.reviews_without_prediction("wordcount_stub") == []
-    test_res = app.evaluate_model("wordcount_stub", on="test", dataset_name="sample_movies")
-    live_res = app.evaluate_model("wordcount_stub", on="live", target_id="sample:starfall")
+    assert app.default_model_name == "tfidf_lr"
+    assert app.repository.reviews_without_prediction("tfidf_lr") == []
+    test_res = app.evaluate_model("tfidf_lr", on="test", dataset_name="sample_movies")
+    live_res = app.evaluate_model("tfidf_lr", on="live", target_id="sample:starfall")
     assert test_res.n == 60 and test_res.accuracy > 0.8
     assert live_res.n == app.repository.count_reviews("sample:starfall")
     assert 0.0 <= live_res.f1 <= 1.0
@@ -79,15 +80,15 @@ def test_broken_factory_falls_back_to_stub(monkeypatch):
 
 
 def test_broken_model_does_not_break_analysis(app, monkeypatch):
-    model = app.models["lexicon_stub"]
-    app.repository.delete_predictions("lexicon_stub")
+    model = app.models["vader"]
+    app.repository.delete_predictions("vader")
 
     def broken(texts):
         raise RuntimeError("CUDA out of memory")
 
     monkeypatch.setattr(model, "predict_proba", broken)
-    assert app.analyze_pending("lexicon_stub") == 0
-    assert "model:lexicon_stub" in app.module_errors
+    assert app.analyze_pending("vader") == 0
+    assert "model:vader" in app.module_errors
     assert app.scored_reviews(limit=3)            # dane nadal dostępne
 
 
