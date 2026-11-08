@@ -66,9 +66,10 @@ def _make_sources() -> dict[str, ReviewSource]:  # O1
 def _make_models() -> dict[str, SentimentModel]:  # O2
     # TODO(M2–M4): VADER, TF-IDF + LR, transformer. PIERWSZY gotowy model = domyślny
     # (nim analizowane są nowo pobrane opinie).
-    from opimon.sentiment import LexiconStubModel, WordCountModel
+    from opimon.sentiment import LexiconStubModel, VaderModel, WordCountModel
 
-    return {"lexicon_stub": LexiconStubModel(), "wordcount_stub": WordCountModel()}
+    return {"vader": VaderModel(), "lexicon_stub": LexiconStubModel(),
+            "wordcount_stub": WordCountModel()}
 
 
 def _make_training_data() -> dict[str, TrainingDataProvider]:  # O2
