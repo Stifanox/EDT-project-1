@@ -6,6 +6,7 @@ import csv
 import hashlib
 import json
 import random
+import tempfile
 from pathlib import Path
 
 from opimon import config
@@ -46,7 +47,7 @@ class ImdbTrainingData:
         if any(n is not None and n < 0 for n in (max_train, max_test)):
             raise ValueError("Limit przykładów nie może być ujemny.")
         stat = path.stat()
-        identity = f"imdb-v3:{path.resolve()}:{stat.st_size}:{stat.st_mtime_ns}"
+        identity = f"imdb-v4:{path.resolve()}:{stat.st_size}:{stat.st_mtime_ns}"
         key = hashlib.sha256(identity.encode()).hexdigest()
         cache = config.CACHE_DIR / f"imdb-{key}.json"
         try:
@@ -58,9 +59,15 @@ class ImdbTrainingData:
             parts = {k: [(ex.text, ex.label.value) for ex in data]
                      for k, data in (("train", train), ("test", test))}
             config.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-            temporary = cache.with_suffix(".tmp")
-            temporary.write_text(json.dumps(parts, ensure_ascii=False), encoding="utf-8")
-            temporary.replace(cache)
+            with tempfile.NamedTemporaryFile(
+                mode="w", encoding="utf-8", dir=config.CACHE_DIR, suffix=".tmp", delete=False
+            ) as handle:
+                temporary = Path(handle.name)
+                json.dump(parts, handle, ensure_ascii=False)
+            try:
+                temporary.replace(cache)
+            finally:
+                temporary.unlink(missing_ok=True)
         return Dataset(self.name, _limited(train, max_train), _limited(test, max_test),
                        description="IMDB; wspólne czyszczenie; bez powtórzeń między częściami.")
 
@@ -75,6 +82,8 @@ class ImdbTrainingData:
                 records: dict[str, tuple[Sentiment, str]] = {}
                 conflicts: set[str] = set()
                 for row in reader:
+                    if row.get("review") is None or row.get("sentiment") is None:
+                        raise ValueError("Niepełny wiersz CSV: brak tekstu lub etykiety.")
                     text = clean_text(row["review"])
                     label = Sentiment(row["sentiment"].strip().lower())
                     part = row.get("split", "")
@@ -91,15 +100,15 @@ class ImdbTrainingData:
                                 if p == part and t not in conflicts] for part in ("train", "test"))
                 for data in (train, test):
                     random.Random(13).shuffle(data)
-                train, test = (
-                    _limited(data, 2 * min(sum(ex.label is label for ex in data)
-                                          for label in Sentiment))
-                    for data in (train, test)
-                )
             else:
                 train, test = split_balanced(
                     [LabeledText(t, s) for t, (s, _) in records.items() if t not in conflicts]
                 )
+            train, test = (
+                _limited(data, 2 * min(sum(ex.label is label for ex in data)
+                                      for label in Sentiment))
+                for data in (train, test)
+            )
             for data in (train, test):
                 if {ex.label for ex in data} != set(Sentiment):
                     raise ValueError("Obie części zbioru muszą zawierać obie klasy.")
