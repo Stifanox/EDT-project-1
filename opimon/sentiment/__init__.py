@@ -4,12 +4,14 @@ from opimon.sentiment.evaluation import evaluate
 from opimon.sentiment.imdb import ImdbTrainingData
 from opimon.sentiment.stub import LexiconStubModel, WordCountModel
 from opimon.sentiment.training_data import SampleTrainingData, split_balanced
+from opimon.sentiment.vader import VaderModel
 
 __all__ = [
     "ImdbTrainingData",
     "LexiconStubModel",
     "SampleTrainingData",
     "WordCountModel",
+    "VaderModel",
     "evaluate",
     "split_balanced",
 ]

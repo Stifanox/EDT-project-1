@@ -12,12 +12,12 @@ import pytest
 from opimon.errors import ModelNotReadyError
 from opimon.interfaces import SentimentModel
 from opimon.models import LabeledText, ModelInfo, Sentiment
-from opimon.sentiment import LexiconStubModel, WordCountModel
+from opimon.sentiment import LexiconStubModel, VaderModel, WordCountModel
 
 MODEL_FACTORIES = [
     pytest.param(LexiconStubModel, id="lexicon_stub"),
     pytest.param(WordCountModel, id="wordcount_stub"),
-    # pytest.param(VaderModel, id="vader"),
+    pytest.param(VaderModel, id="vader"),
     # pytest.param(TfidfLogRegModel, id="tfidf_lr"),
     # pytest.param(TransformerModel, id="distilbert", marks=pytest.mark.slow),
 ]
