@@ -140,3 +140,15 @@ def test_facade_reuses_cache_for_metrics_and_errors(monkeypatch):
                         lambda _: pytest.fail("Nie użyto zapisanych predykcji"))
     assert services.evaluate_model("vader", dataset_name="sample_movies").n == result.n
     services.evaluation_details(dataset_name="sample_movies")
+
+
+def test_parallel_evaluation_cache_writers(examples):
+    from concurrent.futures import ThreadPoolExecutor
+
+    model = ControlledModel()
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        records = list(executor.map(
+            lambda _: evaluate_cached(model, examples, "parallel"), range(8)
+        ))
+    assert all(record.result.tp == 1 and record.result.n == 4 for record in records)
+    assert not list((config.CACHE_DIR / "evaluation").glob("*.tmp"))

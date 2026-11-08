@@ -4,14 +4,13 @@ from __future__ import annotations
 
 import csv
 import hashlib
-import json
 import random
-import tempfile
 from pathlib import Path
 
 from opimon import config
 from opimon.errors import DatasetUnavailableError
 from opimon.models import Dataset, LabeledText, Sentiment
+from opimon.sentiment.cache import read_json, write_json_atomic
 from opimon.sentiment.training_data import split_balanced
 from opimon.textproc import clean_text
 
@@ -51,23 +50,14 @@ class ImdbTrainingData:
         key = hashlib.sha256(identity.encode()).hexdigest()
         cache = config.CACHE_DIR / f"imdb-{key}.json"
         try:
-            parts = json.loads(cache.read_text(encoding="utf-8"))
+            parts = read_json(cache)
             train, test = ([LabeledText(t, Sentiment(s)) for t, s in parts[k]]
                            for k in ("train", "test"))
         except (OSError, ValueError, KeyError, TypeError):
             train, test = self._read(path)
             parts = {k: [(ex.text, ex.label.value) for ex in data]
                      for k, data in (("train", train), ("test", test))}
-            config.CACHE_DIR.mkdir(parents=True, exist_ok=True)
-            with tempfile.NamedTemporaryFile(
-                mode="w", encoding="utf-8", dir=config.CACHE_DIR, suffix=".tmp", delete=False
-            ) as handle:
-                temporary = Path(handle.name)
-                json.dump(parts, handle, ensure_ascii=False)
-            try:
-                temporary.replace(cache)
-            finally:
-                temporary.unlink(missing_ok=True)
+            write_json_atomic(cache, parts)
         return Dataset(self.name, _limited(train, max_train), _limited(test, max_test),
                        description="IMDB; wspólne czyszczenie; bez powtórzeń między częściami.")
 

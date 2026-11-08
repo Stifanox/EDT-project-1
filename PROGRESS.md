@@ -44,7 +44,7 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 
 | ID | Etap | Status | Postęp | Zależności | Uwagi |
 |----|------|--------|--------|------------|-------|
-| [M1](docs/tasks/M1.md) | Zbiór treningowy IMDB | ✅ DONE | 6/6 | !P0 | 2026-11-08 · CSV/HF, podział, cache 0,43 s; testy i statystyki |
+| [M1](docs/tasks/M1.md) | Zbiór treningowy IMDB | ✅ DONE | 6/6 | !P0 | 2026-11-08 · CSV/HF, cache 0,43 s, synchronizacja Windows i testy |
 | [M2](docs/tasks/M2.md) | Model słownikowy VADER | ✅ DONE | 5/5 | !P0 | 2026-11-08 · kontrakt, IMDB i Steam live (199); wyniki w M2 |
 | [M3](docs/tasks/M3.md) | TF-IDF + regresja logistyczna | ✅ DONE | 7/7 | !M1 | 2026-11-08 · IMDB accuracy 90,53%, trening 11,58 s; wariant NB |
 | [M4](docs/tasks/M4.md) | Model transformerowy (DistilBERT SST-2) | ✅ DONE | 5/5 | !P0 | 2026-11-08 · kontrakt slow OK; IMDB n=1000 i Steam live n=199 |
@@ -58,9 +58,12 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
   cache ewaluacji i porównań, kompletne widoki Modele/Ewaluacja z testami GUI.
 - Pełny IMDB: trening TF-IDF 11,58 s, accuracy 90,53% na 24 532 recenzjach testowych.
   Uczciwe porównanie trzech modeli na wspólnych próbkach i ograniczenia w M5.
-- Weryfikacja końcowa: 130 testów zaliczonych, 3 pominięte (brak treningu dla modeli
+- Weryfikacja końcowa: 133 testy zaliczone, 3 pominięte (brak treningu dla modeli
   niewymagających treningu), w tym rzeczywisty kontrakt DistilBERT; Ruff czysty,
   Streamlit HTTP 200. Dane, wagi oraz cache pozostają poza repo.
+- Po ujawnieniu wyścigu cache na Windows dodano synchronizację odczytu/zapisu oraz
+  obsługę blokady przez drugi proces; 20 niezależnych uruchomień testów współbieżności
+  (40 testów) bez błędu, następnie cały zestaw ponownie zaliczony.
 - Kod O1/O3 i zamrożone interfejsy nie były zmieniane. Integracja X1 i końcowy raport
   zespołowy X2 wymagają wkładu pozostałych osób; materiał O2 i prośby są zapisane poniżej.
 
@@ -109,3 +112,4 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | 2026-11-08 | O2 | M4: zależności `transformers>=4.44,<5` i `torch>=2.3` w sekcji O2. Nowa opcjonalna metoda O2 `AppServices.load_model(name, allow_download=False)` udostępnia jawne pobranie wag; zwykły start i odświeżenia GUI nie używają sieci. Transformer jest trzeci w fabryce, CPU i limit 512 tokenów. |
 | 2026-11-08 | O2 | M5: nowe metody O2 `compare_models`, `evaluation_sources`, `evaluation_details`, `explain_text`; `evaluate_model` zachowuje dotychczasowe argumenty i wynik, dodaje opcjonalne `source_name` i `force`. Cache JSON identyfikuje dane, etykiety, model, biblioteki i próg. Źródło `sample` w porównaniach ma nazwę `demo:sample`, aby nie udawać danych z Internetu. Narzędzie pomiarowe `python -m opimon.sentiment.benchmark` zapisuje wyniki poza repo. |
 | 2026-11-08 | O2 | M7 wymaga Plotly do macierzy pomyłek i wykresu accuracy/F1; dodano `plotly>=5.20` w sekcji O2 wymagań. Sekcja O3 pozostaje bez zmian; docelowo zależność wspólna dla wykresów obu osób. |
+| 2026-11-08 | O2 | Końcowe powtórzenie testów ujawniło sporadyczny wyścig cache Windows; poprzedni commit został błędnie scalony i opublikowany mimo niepowodzenia testu. Poprawka w modułach O2 synchronizuje odczyt/zapis JSON i obsługuje blokadę istniejącego cache przez inny proces. Przed publikacją poprawki zaliczono 20 niezależnych powtórzeń testów współbieżności, pełne 133 testy oraz Ruff i start Streamlit. |

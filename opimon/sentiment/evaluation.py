@@ -5,8 +5,6 @@ from __future__ import annotations
 import hashlib
 import json
 import math
-import os
-import tempfile
 import time
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
@@ -18,6 +16,7 @@ import pandas as pd
 from opimon import config
 from opimon.interfaces import SentimentModel
 from opimon.models import EvalResult, LabeledText, Review, Sentiment, utcnow
+from opimon.sentiment.cache import read_json, write_json_atomic
 
 
 def evaluate(
@@ -86,7 +85,7 @@ def evaluate_cached(
     path = _cache_path(model, examples, dataset_name)
     if not force:
         try:
-            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload = read_json(path)
             record = EvaluationRecord(EvalResult(**payload["result"]),
                                       payload["scores"], payload["evaluated_at"])
             if record.result.n == len(examples) and len(record.scores) == len(examples):
@@ -97,14 +96,7 @@ def evaluate_cached(
     scores = [float(s) for s in model.predict_proba([ex.text for ex in examples])]
     result = _result(model.name, examples, scores, dataset_name, time.perf_counter() - start)
     record = EvaluationRecord(result, scores, utcnow().isoformat())
-    path.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
-    try:
-        with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
-            json.dump(asdict(record), handle, ensure_ascii=False)
-        os.replace(temporary, path)
-    finally:
-        Path(temporary).unlink(missing_ok=True)
+    write_json_atomic(path, asdict(record))
     return record
 
 
