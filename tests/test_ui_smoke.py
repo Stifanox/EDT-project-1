@@ -59,6 +59,7 @@ def test_fetch_flow_on_sources_page():
 
 def test_train_flow_on_models_page():
     at = _open(nav.PAGE_MODELS)
+    at.selectbox(key="mdl_dataset").select("sample_movies").run()
     at.button(key="mdl_train").click().run()
     assert not at.exception, at.exception
     assert any("Wytrenowano" in s.value for s in at.success)
