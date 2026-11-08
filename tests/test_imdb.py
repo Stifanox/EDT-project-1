@@ -98,3 +98,24 @@ def test_imbalanced_kaggle_csv_is_balanced():
     dataset = ImdbTrainingData().load()
     for part in (dataset.train, dataset.test):
         assert 2 * sum(ex.label is Sentiment.POSITIVE for ex in part) == len(part)
+
+
+@pytest.mark.parametrize("existing", [True, False])
+def test_windows_sharing_violation_preserves_existing_cache(existing, monkeypatch):
+    from opimon.sentiment import cache
+
+    path = config.CACHE_DIR / "shared.json"
+    if existing:
+        cache.write_json_atomic(path, {"ready": True})
+
+    def denied(*args):
+        raise PermissionError("Windows sharing violation")
+
+    monkeypatch.setattr(cache.os, "replace", denied)
+    if existing:
+        cache.write_json_atomic(path, {"ready": True})
+        assert cache.read_json(path) == {"ready": True}
+    else:
+        with pytest.raises(PermissionError):
+            cache.write_json_atomic(path, {"ready": True})
+    assert not list(config.CACHE_DIR.glob("*.tmp"))
