@@ -19,7 +19,7 @@ import logging
 import time
 from collections.abc import Callable
 from datetime import datetime
-from typing import Literal, TypeVar
+from typing import TYPE_CHECKING, Literal, TypeVar
 
 from opimon import config
 from opimon.errors import OpimonError
@@ -36,9 +36,13 @@ from opimon.models import (
     LabeledText,
     ModelInfo,
     Prediction,
+    Review,
     ScoredReview,
     Target,
 )
+
+if TYPE_CHECKING:
+    import pandas as pd
 
 logger = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -279,25 +283,87 @@ class AppServices:
         dataset_name: str | None = None,
         max_test: int | None = None,
         target_id: str | None = None,
+        source_name: str | None = None,
+        force: bool = False,
     ) -> EvalResult:
         """`test` – część testowa zbioru treningowego; `live` – opinie z Internetu,
         które mają etykietę ze źródła (`Review.label`, np. Steam `voted_up`)."""
-        from opimon.sentiment import evaluate
+        from opimon.sentiment.evaluation import evaluate_cached
 
+        examples, name, _ = self._evaluation_data(
+            on, dataset_name, max_test, target_id, source_name
+        )
+        return evaluate_cached(self.models[model_name], examples, name, force=force).result
+
+    def _evaluation_data(
+        self, on: Literal["test", "live"], dataset_name: str | None = None,
+        max_test: int | None = None, target_id: str | None = None,
+        source_name: str | None = None,
+    ) -> tuple[list[LabeledText], str, list[Review]]:
+        """Te same dane i identyfikator dla metryk, błędów oraz porównań."""
+        if max_test is not None and max_test < 0:
+            raise ValueError("Limit przykładów nie może być ujemny.")
         if on == "test":
             provider = self._provider(dataset_name)
-            examples = provider.load(max_test=max_test).test
-            name = provider.name
-        else:
-            examples = [
-                LabeledText(r.text, r.label)
-                for r in self.repository.list_reviews(target_id)
-                if r.label is not None
-            ][:max_test]
+            return provider.load(max_test=max_test).test, provider.name, []
+        if on != "live":
+            raise ValueError("Wybierz dane test albo live.")
+        reviews = [r for r in self.repository.list_reviews(target_id)
+                   if r.label is not None and (source_name is None or r.source == source_name)]
+        reviews = reviews[:max_test]
+        if source_name is None:
             name = f"live:{target_id or 'all'}"
-        if not examples:
-            raise ValueError("Brak opinii z etykietą do ewaluacji.")
-        return evaluate(self.models[model_name], examples, name)
+        else:
+            prefix = "demo" if source_name == "sample" else "live"
+            name = f"{prefix}:{source_name}" + (f":{target_id}" if target_id else "")
+        return [LabeledText(r.text, r.label) for r in reviews], name, reviews
+
+    def evaluation_sources(self, target_id: str | None = None) -> list[str]:
+        """Źródła z co najmniej jedną oznaczoną opinią; próbka demo pozostaje jawna."""
+        return sorted({r.source for r in self.repository.list_reviews(target_id)
+                       if r.label is not None})
+
+    def compare_models(
+        self, on: Literal["test", "live"] = "test", dataset_name: str | None = None,
+        max_test: int | None = None, target_id: str | None = None,
+        source_name: str | None = None, force: bool = False,
+    ) -> pd.DataFrame:
+        """Porównaj gotowe modele na wspólnym zbiorze i zapisz wyniki w cache M5."""
+        from opimon.sentiment.evaluation import compare_models
+
+        examples, name, _ = self._evaluation_data(
+            on, dataset_name, max_test, target_id, source_name
+        )
+        return compare_models(self.models, examples, name, force=force)
+
+    def evaluation_details(
+        self, on: Literal["test", "live"] = "test", dataset_name: str | None = None,
+        max_test: int | None = None, target_id: str | None = None,
+        source_name: str | None = None, limit: int = 20,
+    ) -> dict:
+        """Błędy modeli i niezgodności z tej samej próby co tabela porównawcza."""
+        from opimon.sentiment.evaluation import disagreements, model_errors
+
+        examples, name, reviews = self._evaluation_data(
+            on, dataset_name, max_test, target_id, source_name
+        )
+        errors, warnings = [], []
+        healthy = {}
+        for model_name in self.ready_models():
+            try:
+                errors.extend(model_errors(self.models[model_name], examples, name,
+                                           review_ids=[r.id for r in reviews] if reviews else None,
+                                           limit=limit))
+                healthy[model_name] = self.models[model_name]
+            except Exception as exc:
+                warnings.append(f"{model_name}: {exc}")
+        differences = disagreements(healthy, reviews, limit=limit, dataset_name=name)
+        return {"errors": errors, "disagreements": differences, "warnings": warnings}
+
+    def explain_text(self, text: str, model_name: str, n: int = 10) -> list[tuple[str, float]]:
+        """Opcjonalne wyjaśnienie modelu udostępnione przez fasadę dla M6 i A3."""
+        explain = getattr(self.models[model_name], "explain", None)
+        return explain(text, n=n) if explain is not None else []
 
     # ----------------------------------------------------------- pomocnicze
     def _provider(self, dataset_name: str | None) -> TrainingDataProvider:
