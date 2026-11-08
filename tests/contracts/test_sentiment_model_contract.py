@@ -12,14 +12,35 @@ import pytest
 from opimon.errors import ModelNotReadyError
 from opimon.interfaces import SentimentModel
 from opimon.models import LabeledText, ModelInfo, Sentiment
-from opimon.sentiment import LexiconStubModel, TfidfLogRegModel, VaderModel, WordCountModel
+from opimon.sentiment import (
+    LexiconStubModel,
+    TfidfLogRegModel,
+    TransformerModel,
+    VaderModel,
+    WordCountModel,
+)
+
+
+def _transformer():
+    # Pełny kontrakt slow używa jawnie pobranych wag poza izolowanym katalogiem testu.
+    from opimon import config
+
+    model = TransformerModel()
+    original = config.MODELS_DIR
+    try:
+        config.MODELS_DIR = config.ROOT_DIR / "data" / "models"
+        if not model.load(allow_download=False):
+            pytest.fail(model.info().notes + " Uruchom benchmark z --download-transformer.")
+    finally:
+        config.MODELS_DIR = original
+    return model
 
 MODEL_FACTORIES = [
     pytest.param(LexiconStubModel, id="lexicon_stub"),
     pytest.param(WordCountModel, id="wordcount_stub"),
     pytest.param(VaderModel, id="vader"),
     pytest.param(TfidfLogRegModel, id="tfidf_lr"),
-    # pytest.param(TransformerModel, id="distilbert", marks=pytest.mark.slow),
+    pytest.param(_transformer, id="distilbert", marks=pytest.mark.slow),
 ]
 
 CLEAR = [("This was great, I loved it. Fantastic and excellent.", Sentiment.POSITIVE),

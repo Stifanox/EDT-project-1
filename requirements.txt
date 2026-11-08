@@ -10,8 +10,8 @@ pandas>=2.2
 scikit-learn>=1.5
 joblib>=1.4
 vaderSentiment>=3.3
-# transformers>=4.44           # M4; ciągnie torch – pierwsza instalacja trwa dłużej
-# torch>=2.3
+transformers>=4.44,<5
+torch>=2.3
 
 # --- wykresy (O3: A2, A4) ---
 # plotly>=5.20
