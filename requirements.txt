@@ -12,6 +12,7 @@ joblib>=1.4
 vaderSentiment>=3.3
 transformers>=4.44,<5
 torch>=2.3
+plotly>=5.20                  # M7: porównanie modeli
 
 # --- wykresy (O3: A2, A4) ---
 # plotly>=5.20

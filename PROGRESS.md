@@ -12,7 +12,7 @@
 | Osoba | Zakres | Etapy ukończone |
 |-------|--------|-----------------|
 | O1 | Fundament, źródła danych (API + scraping), baza, monitorowanie | 1 / 6 (+1 opcjonalny) |
-| O2 | Modele sentymentu, trening, ewaluacja | 6 / 7 |
+| O2 | Modele sentymentu, trening, ewaluacja | 7 / 7 |
 | O3 | Analiza, dashboard, przeglądarka opinii, alerty | 0 / 5 (+1 opcjonalny) |
 | Wszyscy | Integracja, raport | 0 / 2 |
 
@@ -50,7 +50,7 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | [M4](docs/tasks/M4.md) | Model transformerowy (DistilBERT SST-2) | ✅ DONE | 5/5 | !P0 | 2026-11-08 · kontrakt slow OK; IMDB n=1000 i Steam live n=199 |
 | [M5](docs/tasks/M5.md) | Ewaluacja i porównanie modeli (ta sama vs inna domena) | ✅ DONE | 6/6 | !M1, ~M2, ~M3, ~M4, ~D1 | 2026-11-08 · wspólna próba IMDB/Steam, cache, błędy i wnioski |
 | [M6](docs/tasks/M6.md) | Widok „Modele” | ✅ DONE | 5/5 | !P0, ~M3 | 2026-11-08 · trening, wyjaśnienia, przykłady, analiza i AppTest |
-| [M7](docs/tasks/M7.md) | Widok „Ewaluacja i porównanie modeli” | ⬜ TODO | 0/5 | ~M5 | |
+| [M7](docs/tasks/M7.md) | Widok „Ewaluacja i porównanie modeli” | ✅ DONE | 5/5 | ~M5 | 2026-11-08 · porównanie, macierz, wykresy, błędy i AppTest |
 
 ## O3 – Analiza i monitoring (właściciel: O3)
 
@@ -78,6 +78,8 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 |------|----|----|--------|--------|
 | – | – | – | – | – |
 | 2026-11-08 | O2 | O1 | D1: stary `/appreviews/<appid>?json=1` przekierowuje do strony głównej. Aktualne API: `https://api.steampowered.com/IUserReviewsService/GetAppReviews/v1/`, parametry w `input_json`, enumy liczbowe, `languages` jako lista; klucz opcjonalny. Dokumentacja: https://partner.steamgames.com/doc/webapi/IUserReviewsService . Proszę uwzględnić migrację w D1 i README. | OTWARTE |
+| 2026-11-08 | O2 | O3 | M7 korzysta z `nav.open_reviews(review_id=...)`; proszę w A3 odczytać `review_id` i wyświetlić szczegóły wskazanej opinii (zaślepka go ignoruje). Tymczasowo M7 przekazuje też cel i pełną frazę. Wyjaśnienia dostępne przez `AppServices.explain_text(text, model_name)`. | OTWARTE |
+| 2026-11-08 | O2 | O1 / wszyscy | M1–M7 gotowe. Materiał O2 do X2: tabele i ograniczenia w `docs/tasks/M1.md`–`M5.md`, odtwarzalny benchmark `python -m opimon.sentiment.benchmark --help`. X1 czeka na D1/D2/A2; po D3 proszę powtórzyć porównanie IMDb live (API fasady obsługuje etykiety dowolnego źródła). | DO INTEGRACJI |
 
 ## Dziennik decyzji i zmian kontraktów
 
@@ -94,3 +96,4 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | 2026-11-08 | O2 | M3: zależności `scikit-learn`, `joblib` w sekcji O2. `_make_models()` rejestruje TF-IDF jako pierwszy, VADER jako gotowy fallback przed treningiem; zaślepki pozostają w awaryjnej fabryce P0 i testach kontraktowych. Wspólne testy fasady sprawdzają prawdziwy model zamiast zaślepki, z tą samą intencją treningu, ponownej analizy i odporności. |
 | 2026-11-08 | O2 | M4: zależności `transformers>=4.44,<5` i `torch>=2.3` w sekcji O2. Nowa opcjonalna metoda O2 `AppServices.load_model(name, allow_download=False)` udostępnia jawne pobranie wag; zwykły start i odświeżenia GUI nie używają sieci. Transformer jest trzeci w fabryce, CPU i limit 512 tokenów. |
 | 2026-11-08 | O2 | M5: nowe metody O2 `compare_models`, `evaluation_sources`, `evaluation_details`, `explain_text`; `evaluate_model` zachowuje dotychczasowe argumenty i wynik, dodaje opcjonalne `source_name` i `force`. Cache JSON identyfikuje dane, etykiety, model, biblioteki i próg. Źródło `sample` w porównaniach ma nazwę `demo:sample`, aby nie udawać danych z Internetu. Narzędzie pomiarowe `python -m opimon.sentiment.benchmark` zapisuje wyniki poza repo. |
+| 2026-11-08 | O2 | M7 wymaga Plotly do macierzy pomyłek i wykresu accuracy/F1; dodano `plotly>=5.20` w sekcji O2 wymagań. Sekcja O3 pozostaje bez zmian; docelowo zależność wspólna dla wykresów obu osób. |
