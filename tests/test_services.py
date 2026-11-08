@@ -21,8 +21,8 @@ def test_samples_loaded_and_analyzed(app):
     n = app.repository.count_reviews()
     assert n == 195
     assert len(app.repository.list_targets()) == 3
-    assert app.default_model_name == "lexicon_stub"
-    assert app.repository.reviews_without_prediction("lexicon_stub") == []
+    assert app.default_model_name == "vader"
+    assert app.repository.reviews_without_prediction(app.default_model_name) == []
     rows = app.scored_reviews()
     assert len(rows) == n and all(r.prediction for r in rows)
 
