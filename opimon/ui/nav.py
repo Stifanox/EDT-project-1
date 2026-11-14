@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 from typing import TypedDict
 
 import streamlit as st
@@ -34,6 +35,8 @@ class ReviewFilters(TypedDict, total=False):
     sentiment: str | None       # Sentiment.value
     term: str | None            # słowo do wyszukania / podświetlenia
     review_id: str | None       # konkretna opinia do pokazania
+    date_from: date | None      # zakres dat (UTC, włącznie); dodane w A3
+    date_to: date | None
 
 
 def open_reviews(
@@ -41,12 +44,16 @@ def open_reviews(
     sentiment: Sentiment | None = None,
     term: str | None = None,
     review_id: str | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
 ) -> None:
     st.session_state[_REVIEW_FILTERS_KEY] = ReviewFilters(
         target_id=target_id,
         sentiment=sentiment.value if sentiment else None,
         term=term,
         review_id=review_id,
+        date_from=date_from,
+        date_to=date_to,
     )
     st.switch_page(PAGE_REVIEWS)
 
