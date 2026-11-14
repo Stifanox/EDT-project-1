@@ -13,7 +13,7 @@
 |-------|--------|-----------------|
 | O1 | Fundament, źródła danych (API + scraping), baza, monitorowanie | 1 / 6 (+1 opcjonalny) |
 | O2 | Modele sentymentu, trening, ewaluacja | 7 / 7 |
-| O3 | Analiza, dashboard, przeglądarka opinii, alerty | 1 / 5 (+1 opcjonalny) |
+| O3 | Analiza, dashboard, przeglądarka opinii, alerty | 2 / 5 (+1 opcjonalny) |
 | Wszyscy | Integracja, raport | 0 / 2 |
 
 **Kolejność:** P0 jest jedynym etapem blokującym. Po jego merge do `main` wszystkie trzy osoby
@@ -72,7 +72,7 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | ID | Etap | Status | Postęp | Zależności | Uwagi |
 |----|------|--------|--------|------------|-------|
 | [A1](docs/tasks/A1.md) | Statystyki i trend sentymentu | ✅ DONE | 6/6 | !P0 | 2026-11-14 · trend z wygładzaniem, Wilson, `filter_period`, `label_agreement` |
-| [A2](docs/tasks/A2.md) | Widok „Dashboard” | ⬜ TODO | 0/6 | !P0, ~A1 | główny ekran demo |
+| [A2](docs/tasks/A2.md) | Widok „Dashboard” | ✅ DONE | 6/6 | !P0, ~A1 | 2026-11-14 · główny ekran demo: KPI z CI i deltą, trend D/W, porównanie, przejścia |
 | [A3](docs/tasks/A3.md) | Widok „Opinie” – przeglądarka | ⬜ TODO | 0/6 | !P0 | |
 | [A4](docs/tasks/A4.md) | Słowa kluczowe: co chwalą, a co krytykują | ⬜ TODO | 0/5 | !P0 | |
 | [A5](docs/tasks/A5.md) | Alerty o spadku sentymentu | ⬜ TODO | 0/5 | !A1 | |
@@ -82,9 +82,12 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 
 - A1 ukończony: `SentimentAnalytics` zastępuje zaślepkę w `_make_analytics()`; trend z pustymi
   okresami i wygładzonym udziałem, przedziały Wilsona w porównaniu obiektów, pomocniki
-  `filter_period`, `label_agreement`, `wilson_interval` (gotowe do użycia w A2).
-- Weryfikacja: 150 testów zaliczonych, 2 pominięte; Ruff czysty. Kolejne: A2, A3 (prośba O2
-  o obsługę `review_id`), A4, A5.
+  `filter_period`, `label_agreement`, `wilson_interval`.
+- A2 ukończony: dashboard z KPI okresu (CI Wilsona, delta względem poprzedniego okresu),
+  trendem D/W z wygładzonym udziałem, rozkładem, porównaniem obiektów (klik -> dashboard
+  obiektu), zgodnością z etykietą źródła i przejściami do opinii z przycisków i wykresu.
+- Weryfikacja: 167 testów zaliczonych, 2 pominięte; Ruff czysty; Streamlit startuje.
+  Kolejne: A3 (prośba O2 o obsługę `review_id`), A4, A5.
 
 ## Wspólne – na koniec
 

@@ -15,7 +15,8 @@ from datetime import datetime, timedelta
 import pandas as pd
 
 from opimon.analytics.stub import COMPARE_COLUMNS, TREND_COLUMNS, BasicAnalytics, to_frame
-from opimon.models import ScoredReview, utcnow
+from opimon.interfaces import OpinionAnalytics
+from opimon.models import ScoredReview, SentimentSummary, utcnow
 
 SMOOTHED_COLUMN = "positive_share_smoothed"
 TREND_COLUMNS_EXT = [*TREND_COLUMNS, SMOOTHED_COLUMN]
@@ -62,6 +63,60 @@ def filter_period(
         raise ValueError(f"days musi być dodatnie albo None, dostano {days}")
     cutoff = (now or utcnow()) - timedelta(days=days)
     return [r for r in rows if r.review.created_at >= cutoff]
+
+
+def previous_period(
+    rows: Sequence[ScoredReview], days: int | None, now: datetime | None = None
+) -> list[ScoredReview]:
+    """Opinie z okresu bezpośrednio poprzedzającego `filter_period` (tej samej długości):
+    `now - 2·days <= created_at < now - days`; `days=None` -> `[]` (brak okresu odniesienia)."""
+    if days is None:
+        return []
+    if days <= 0:
+        raise ValueError(f"days musi być dodatnie albo None, dostano {days}")
+    now = now or utcnow()
+    start, end = now - timedelta(days=2 * days), now - timedelta(days=days)
+    return [r for r in rows if start <= r.review.created_at < end]
+
+
+@dataclass(frozen=True, slots=True)
+class PeriodKpis:
+    """KPI wybranego okresu z porównaniem do poprzedniego okresu tej samej długości."""
+
+    current: SentimentSummary
+    previous: SentimentSummary | None     # None, gdy okres = „wszystko”
+    ci_low: float                         # Wilson 95% dla udziału pozytywnych; NaN gdy brak
+    ci_high: float
+
+    @property
+    def total_change(self) -> int | None:
+        return None if self.previous is None else self.current.total - self.previous.total
+
+    @property
+    def negative_change(self) -> int | None:
+        return None if self.previous is None else self.current.negative - self.previous.negative
+
+    @property
+    def share_change_pp(self) -> float | None:
+        """Zmiana udziału pozytywnych w punktach procentowych; None, gdy brak danych."""
+        if self.previous is None:
+            return None
+        cur, prev = self.current.positive_share, self.previous.positive_share
+        return None if cur is None or prev is None else (cur - prev) * 100
+
+
+def period_kpis(
+    analytics: OpinionAnalytics,
+    rows: Sequence[ScoredReview],
+    days: int | None,
+    now: datetime | None = None,
+) -> PeriodKpis:
+    """KPI dla ostatnich `days` dni (`None` = wszystko) i zmiana względem poprzedniego okresu."""
+    now = now or utcnow()
+    current = analytics.summary(filter_period(rows, days, now))
+    previous = None if days is None else analytics.summary(previous_period(rows, days, now))
+    low, high = wilson_interval(current.positive, current.positive + current.negative)
+    return PeriodKpis(current, previous, low, high)
 
 
 @dataclass(frozen=True, slots=True)
