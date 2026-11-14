@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import timedelta
+import json
+from datetime import date, timedelta
 from pathlib import Path
 
 import pandas as pd
@@ -40,7 +41,7 @@ def metric(at: AppTest, label: str):
     return next(m for m in at.metric if m.label == label)
 
 
-def select_point(at: AppTest, key: str, customdata: str) -> AppTest:
+def select_point(at: AppTest, key: str, customdata: str | list[str]) -> AppTest:
     at.session_state[key] = {"selection": {"points": [{"customdata": customdata}],
                                            "point_indices": [0], "box": [], "lasso": []}}
     return at.run()
@@ -62,9 +63,14 @@ def test_kpis_period_and_label_agreement():
     assert metric(at, "Udział pozytywnych").delta.endswith("p.p.")
 
 
+def chart_keys(at: AppTest) -> set[str]:
+    return {c.key for c in at.get("plotly_chart")}
+
+
 def test_trend_frequency_and_charts():
     at = open_dashboard()
-    assert len(at.get("plotly_chart")) == 3            # trend, rozkład, porównanie
+    assert chart_keys(at) == {"dash_trend_chart", "dash_distribution_chart", "dash_compare_chart",
+                              "dash_terms_positive", "dash_terms_negative", "dash_emerging"}
     at.radio(key="dash_freq").set_value("W").run()
     assert not at.exception, at.exception
 
@@ -85,7 +91,7 @@ def test_compare_table_row_opens_target_dashboard():
     target = at.session_state["dash_target"]
     assert target != "__all__" and target in {t.id for t in
                                               get_services().repository.list_targets()}
-    assert len(at.get("plotly_chart")) == 2                   # bez sekcji porównania
+    assert "dash_compare_chart" not in chart_keys(at)         # dashboard jednego obiektu
     at.run()
     assert at.session_state["dash_target"] == target          # brak pętli przejść
 
@@ -100,15 +106,40 @@ def test_compare_chart_click_opens_target_dashboard():
 
 def test_trend_click_opens_reviews_and_works_again_after_return():
     at = open_dashboard()
-    select_point(at, "dash_trend_chart", "negative")
+    select_point(at, "dash_trend_chart", ["negative", "2026-10-26", "2026-11-01"])
     assert not at.exception, at.exception
     assert at.session_state["rev_sentiment"] == "negative"
+    assert at.date_input(key="rev_date_from").value == date(2026, 10, 26)
+    assert at.date_input(key="rev_date_to").value == date(2026, 11, 1)
     at.switch_page(nav.PAGE_DASHBOARD).run()
     assert not at.exception, at.exception
     assert at.selectbox(key="dash_period").value == "30"      # brak ponownego przejścia
     at.session_state["rev_sentiment"] = "all"
     select_point(at, "dash_trend_chart", "negative")
     assert at.session_state["rev_sentiment"] == "negative"
+
+
+def test_term_click_opens_reviews_with_term_and_period():
+    at = open_dashboard()
+    select_point(at, "dash_terms_negative", "boring grind")
+    assert not at.exception, at.exception
+    assert at.session_state["rev_sentiment"] == "negative"
+    assert at.text_input(key="rev_term").value == "boring grind"
+    assert at.date_input(key="rev_date_from").value is not None     # okres 30 dni
+
+
+def test_emerging_terms_on_starfall_and_click():
+    at = open_dashboard()
+    starfall = next(t.id for t in get_services().repository.list_targets()
+                    if t.name == "Starfall Odyssey")
+    at.selectbox(key="dash_target").set_value(starfall).run()
+    emerging = next(c for c in at.get("plotly_chart") if c.key == "dash_emerging")
+    terms = set(json.loads(emerging.proto.spec)["data"][0]["customdata"])
+    assert {"patch", "update"} <= terms
+    select_point(at, "dash_emerging", "patch")
+    assert at.text_input(key="rev_term").value == "patch"
+    assert at.session_state["rev_sentiment"] == "all"
+    assert at.date_input(key="rev_date_from").value is not None
 
 
 @pytest.mark.parametrize("sentiment", ["positive", "negative"])
@@ -174,7 +205,10 @@ def test_trend_chart_traces():
     names = [t.name for t in fig.data]
     assert names == ["Pozytywne", "Negatywne", "Udział pozytywnych",
                      "Udział pozytywnych (wygładzony)"]
-    assert list(fig.data[0].customdata) == ["positive"] * len(trend)
+    assert [c[0] for c in fig.data[0].customdata] == ["positive"] * len(trend)
+    assert list(fig.data[0].customdata[-1]) == ["positive", "2026-11-01", "2026-11-01"]
+    weekly = trend_chart(SentimentAnalytics().trend(rows, "W"), "W")
+    assert list(weekly.data[1].customdata[0]) == ["negative", "2026-10-26", "2026-11-01"]
     assert list(fig.data[1].y) == list(trend["negative"])
     assert fig.layout.barmode == "stack"
 

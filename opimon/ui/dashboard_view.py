@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import math
 from collections.abc import Mapping
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from typing import Any
 
-import pandas as pd
 import streamlit as st
 
+from opimon import config
 from opimon.analytics import (
     PERIOD_OPTIONS,
     LabelAgreement,
@@ -18,30 +18,45 @@ from opimon.analytics import (
     label_agreement,
     period_kpis,
 )
-from opimon.models import ScoredReview, Sentiment, utcnow
+from opimon.analytics.report import render_report, reviews_to_csv
+from opimon.analytics.terms import emerging_terms
+from opimon.models import AlertLevel, ScoredReview, Sentiment, utcnow
 from opimon.services import AppServices
 from opimon.ui import nav
-from opimon.ui.charts import compare_chart, distribution_chart, trend_chart
+from opimon.ui.charts import (
+    NEGATIVE_COLOR,
+    POSITIVE_COLOR,
+    compare_chart,
+    distribution_chart,
+    terms_chart,
+    trend_chart,
+)
 from opimon.ui.components import model_selector, page_header, target_selector
 
 # Klucze okresu w `session_state` (stringi, bo `None` w selectbox jest niejednoznaczne).
 PERIODS: dict[str, int | None] = {str(d) if d else "all": d for d in PERIOD_OPTIONS}
 DEFAULT_PERIOD = "30"
 FREQS = {"D": "Dziennie", "W": "Tygodniowo"}
+TERMS_N = 10
 
 
-def selected_customdata(event: Mapping[str, Any] | None) -> str | None:
-    """`customdata` pierwszego zaznaczonego punktu wykresu plotly (`on_select`) albo None."""
+def selected_point_data(event: Mapping[str, Any] | None) -> list[str] | None:
+    """Pełne `customdata` pierwszego zaznaczonego punktu wykresu plotly jako lista albo None."""
     if not event:
         return None
     points = (event.get("selection") or {}).get("points") or []
     for point in points:
         value = point.get("customdata")
-        if isinstance(value, list | tuple):
-            value = value[0] if value else None
-        if value not in (None, ""):
-            return str(value)
+        values = list(value) if isinstance(value, list | tuple) else [value]
+        if values and values[0] not in (None, ""):
+            return [str(v) for v in values]
     return None
+
+
+def selected_customdata(event: Mapping[str, Any] | None) -> str | None:
+    """Pierwszy element `customdata` zaznaczonego punktu (`on_select`) albo None."""
+    data = selected_point_data(event)
+    return data[0] if data else None
 
 
 def selected_row(event: Mapping[str, Any] | None) -> int | None:
@@ -78,6 +93,26 @@ def _render_kpis(kpis: PeriodKpis, agreement: LabelAgreement, days: int | None) 
         st.caption(f"Brak opinii w poprzednich {days} dniach – zmiany nie są liczone.")
 
 
+def _render_alerts(services: AppServices, rows: list[ScoredReview], now: datetime) -> None:
+    alerts = services.analytics.alerts(rows, now)
+    if not alerts:
+        return
+    st.subheader("Alerty")
+    window = config.ALERT_WINDOW_DAYS
+    since = (now - timedelta(days=window)).date()
+    for i, alert in enumerate(alerts):
+        name = services.target_name(alert.target_id)
+        icon = "🔴" if alert.level is AlertLevel.CRITICAL else "🟠"
+        box = st.error if alert.level is AlertLevel.CRITICAL else st.warning
+        box(f"{icon} **{name}**: {alert.message}")
+        cols = st.columns([3, 2, 2])
+        if cols[1].button("Dashboard obiektu", key=f"dash_alert_dash_{i}", width="stretch"):
+            nav.open_dashboard(alert.target_id)
+        if cols[2].button("Negatywne z okna", key=f"dash_alert_reviews_{i}", width="stretch"):
+            nav.open_reviews(alert.target_id, Sentiment.NEGATIVE, date_from=since,
+                             date_to=now.date())
+
+
 def _render_trend(services: AppServices, rows: list[ScoredReview], target_id: str | None,
                   freq: str) -> None:
     st.subheader("Trend sentymentu")
@@ -85,11 +120,15 @@ def _render_trend(services: AppServices, rows: list[ScoredReview], target_id: st
     if trend.empty:
         st.info("Brak opinii w wybranym okresie.")
         return
-    event = st.plotly_chart(trend_chart(trend), key="dash_trend_chart", on_select="rerun",
+    event = st.plotly_chart(trend_chart(trend, freq), key="dash_trend_chart", on_select="rerun",
                             selection_mode="points")
-    st.caption("Kliknij słupek, aby zobaczyć opinie o danym sentymencie.")
-    if (value := selected_customdata(event)) in {"positive", "negative"}:
-        nav.open_reviews(target_id, Sentiment(value))
+    st.caption("Kliknij słupek, aby zobaczyć opinie o danym sentymencie z tego okresu.")
+    data = selected_point_data(event)
+    if data and data[0] in {"positive", "negative"}:
+        start = end = None
+        if len(data) >= 3:
+            start, end = date.fromisoformat(data[1]), date.fromisoformat(data[2])
+        nav.open_reviews(target_id, Sentiment(data[0]), date_from=start, date_to=end)
 
 
 def _render_distribution(services: AppServices, rows: list[ScoredReview],
@@ -138,16 +177,39 @@ def _render_comparison(services: AppServices, rows: list[ScoredReview]) -> None:
         nav.open_dashboard(chosen)
 
 
-def _render_terms(services: AppServices, rows: list[ScoredReview]) -> None:
-    st.subheader("Charakterystyczne słowa")
+def _render_terms(services: AppServices, rows: list[ScoredReview], target_id: str | None,
+                  since: date | None) -> None:
+    st.subheader("Co chwalą, a co krytykują")
+    st.caption("Słowa i frazy charakterystyczne dla opinii pozytywnych względem negatywnych "
+               "(i odwrotnie) w wybranym okresie. Kliknij słowo, aby zobaczyć opinie.")
     cols = st.columns(2)
-    for col, sentiment in zip(cols, (Sentiment.POSITIVE, Sentiment.NEGATIVE), strict=True):
+    for col, sentiment, color in zip(cols, (Sentiment.POSITIVE, Sentiment.NEGATIVE),
+                                     (POSITIVE_COLOR, NEGATIVE_COLOR), strict=True):
         with col:
             st.markdown(f"{sentiment.icon} **{sentiment.label_pl}**")
-            terms = services.analytics.top_terms(rows, sentiment, n=10)
-            st.dataframe(pd.DataFrame({"Słowo": [t.term for t in terms],
-                                       "Liczba": [t.count for t in terms]}),
-                         hide_index=True, key=f"dash_terms_{sentiment.value}")
+            terms = services.analytics.top_terms(rows, sentiment, n=TERMS_N)
+            if not terms:
+                st.info("Za mało opinii, żeby wskazać charakterystyczne słowa.")
+                continue
+            event = st.plotly_chart(terms_chart(terms, color), key=f"dash_terms_{sentiment.value}",
+                                    on_select="rerun", selection_mode="points")
+            if term := selected_customdata(event):
+                nav.open_reviews(target_id, sentiment, term=term, date_from=since)
+
+
+def _render_emerging(rows: list[ScoredReview], target_id: str | None, now: datetime) -> None:
+    days = config.ALERT_WINDOW_DAYS
+    st.subheader("Co się zmieniło ostatnio")
+    terms = emerging_terms(rows, recent_days=days, now=now, n=TERMS_N)
+    if not terms:
+        st.info(f"Brak słów wyraźnie częstszych w ostatnich {days} dniach niż wcześniej.")
+        return
+    st.caption(f"Słowa częstsze w ostatnich {days} dniach niż wcześniej; kolor = przeważający "
+               "sentyment opinii z tym słowem. Kliknij słowo, aby zobaczyć te opinie.")
+    event = st.plotly_chart(terms_chart(terms, weight_label="Wzrost częstości (z-score)"),
+                            key="dash_emerging", on_select="rerun", selection_mode="points")
+    if term := selected_customdata(event):
+        nav.open_reviews(target_id, term=term, date_from=(now - timedelta(days=days)).date())
 
 
 def render_dashboard_view(services: AppServices, now: datetime | None = None) -> None:
@@ -176,8 +238,7 @@ def render_dashboard_view(services: AppServices, now: datetime | None = None) ->
     _render_kpis(period_kpis(services.analytics, all_rows, days, now), label_agreement(rows),
                  days)
 
-    for alert in services.analytics.alerts(all_rows, now):
-        st.warning(f"**{services.target_name(alert.target_id)}**: {alert.message}")
+    _render_alerts(services, all_rows, now)
 
     left, right = st.columns([2, 1])
     with left:
@@ -186,4 +247,23 @@ def render_dashboard_view(services: AppServices, now: datetime | None = None) ->
         _render_distribution(services, rows, target_id)
     if target_id is None:
         _render_comparison(services, rows)
-    _render_terms(services, rows)
+    since = None if days is None else (now - timedelta(days=days)).date()
+    _render_terms(services, rows, target_id, since)
+    _render_emerging(all_rows, target_id, now)
+
+    st.subheader("Eksport")
+    target = services.repository.get_target(target_id) if target_id else None
+    model_label = services.models[model_name].label if model_name else None
+    stem = (target.key if target else "wszystkie")
+    e1, e2 = st.columns(2)
+    e1.download_button(
+        "CSV opinii (wybrany okres)", data=reviews_to_csv(rows),
+        file_name=f"opinie-{stem}.csv", mime="text/csv", key="dash_csv",
+        disabled=not rows, width="stretch",
+    )
+    e2.download_button(
+        "Raport HTML",
+        data=render_report(rows, target, services.analytics, now=now, model_label=model_label),
+        file_name=f"raport-{stem}.html", mime="text/html", key="dash_report",
+        disabled=not rows, width="stretch",
+    )

@@ -1,8 +1,7 @@
-"""Pełna analityka sentymentu (A1): trend z wygładzaniem, porównanie obiektów z przedziałem
-ufności, filtrowanie okresu i zgodność modelu z etykietą źródła.
+"""Pełna analityka sentymentu (A1–A5): trend z wygładzaniem, porównanie obiektów,
+filtrowanie okresu, zgodność z etykietą, słowa kluczowe i alerty.
 
-Wszystkie funkcje są czyste (bez Streamlit). Słowa kluczowe (A4) i alerty (A5) na razie
-dziedziczą proste zachowanie z zaślepki `BasicAnalytics`.
+Wszystkie funkcje są czyste (bez Streamlit).
 """
 
 from __future__ import annotations
@@ -10,13 +9,13 @@ from __future__ import annotations
 import math
 from collections.abc import Sequence
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 import pandas as pd
 
 from opimon.analytics.stub import COMPARE_COLUMNS, TREND_COLUMNS, BasicAnalytics, to_frame
 from opimon.interfaces import OpinionAnalytics
-from opimon.models import ScoredReview, SentimentSummary, utcnow
+from opimon.models import Alert, ScoredReview, Sentiment, SentimentSummary, TermStat, utcnow
 
 SMOOTHED_COLUMN = "positive_share_smoothed"
 TREND_COLUMNS_EXT = [*TREND_COLUMNS, SMOOTHED_COLUMN]
@@ -150,6 +149,12 @@ def _period_freq(freq: str) -> str:
     return _PERIOD_FREQ.get(freq, freq)
 
 
+def period_bounds(start: datetime, freq: str) -> tuple[date, date]:
+    """Pierwszy i ostatni dzień (UTC, włącznie) okresu trendu zaczynającego się w `start`."""
+    period = pd.Timestamp(start).tz_convert(None).to_period(_period_freq(freq))
+    return period.start_time.date(), period.end_time.date()
+
+
 class SentimentAnalytics(BasicAnalytics):
     """Implementacja `OpinionAnalytics` (A1; A4 i A5 rozbudowują `top_terms` i `alerts`)."""
 
@@ -187,6 +192,20 @@ class SentimentAnalytics(BasicAnalytics):
         out.index = full.start_time.tz_localize("UTC")
         out = out.rename_axis("period").reset_index()
         return out[TREND_COLUMNS_EXT]
+
+    def top_terms(
+        self, rows: Sequence[ScoredReview], sentiment: Sentiment, n: int = 20
+    ) -> list[TermStat]:
+        """Słowa i bigramy ważone z-score log-odds (A4, `analytics.terms`)."""
+        from opimon.analytics.terms import top_terms
+
+        return top_terms(rows, sentiment, n)
+
+    def alerts(self, rows: Sequence[ScoredReview], now: datetime | None = None) -> list[Alert]:
+        """Spadek udziału pozytywnych i skok liczby negatywnych opinii (A5, `analytics.alerts`)."""
+        from opimon.analytics.alerts import compute_alerts
+
+        return compute_alerts(rows, now)
 
     def compare_targets(self, rows: Sequence[ScoredReview]) -> pd.DataFrame:
         """Porównanie obiektów + przedział Wilsona (95%) udziału pozytywnych."""

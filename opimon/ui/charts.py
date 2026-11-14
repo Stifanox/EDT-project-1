@@ -6,13 +6,14 @@ mogło prowadzić do opinii lub dashboardu obiektu.
 
 from __future__ import annotations
 
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from opimon.models import SentimentSummary
+from opimon.analytics import period_bounds
+from opimon.models import Sentiment, SentimentSummary, TermStat
 
 POSITIVE_COLOR = "#2e9d5b"
 NEGATIVE_COLOR = "#d6453d"
@@ -21,14 +22,17 @@ SHARE_COLOR = "#1f4e9c"
 _MARGIN = dict(l=40, r=20, t=30, b=40)
 
 
-def trend_chart(trend: pd.DataFrame) -> go.Figure:
-    """Słupki pozytywnych / negatywnych (oś lewa) + udział pozytywnych (oś prawa, 0–100%)."""
+def trend_chart(trend: pd.DataFrame, freq: str = "D") -> go.Figure:
+    """Słupki pozytywnych / negatywnych (oś lewa) + udział pozytywnych (oś prawa, 0–100%).
+
+    `customdata` słupka = [sentyment, pierwszy dzień okresu, ostatni dzień okresu] (ISO)."""
+    bounds = [period_bounds(p, freq) for p in trend["period"]]
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     for column, name, color in (("positive", "Pozytywne", POSITIVE_COLOR),
                                 ("negative", "Negatywne", NEGATIVE_COLOR)):
         fig.add_trace(go.Bar(
             x=trend["period"], y=trend[column], name=name, marker_color=color,
-            customdata=[column] * len(trend),
+            customdata=[[column, a.isoformat(), b.isoformat()] for a, b in bounds],
             hovertemplate="%{x|%Y-%m-%d}<br>" + name + ": %{y}<extra></extra>",
         ), secondary_y=False)
     fig.add_trace(go.Scatter(
@@ -65,6 +69,24 @@ def distribution_chart(summary: SentimentSummary) -> go.Figure:
     ))
     fig.update_layout(height=300, margin=_MARGIN, showlegend=True,
                       legend=dict(orientation="h", y=-0.1))
+    return fig
+
+
+def terms_chart(terms: Sequence[TermStat], color: str | None = None,
+                weight_label: str = "Waga (z-score log-odds)") -> go.Figure:
+    """Poziome słupki termów wg wagi (najważniejszy na górze); `customdata` = term.
+    `color=None` -> kolor wg `TermStat.sentiment` każdego termu."""
+    ordered = list(reversed(terms))
+    colors = color or [POSITIVE_COLOR if t.sentiment is Sentiment.POSITIVE else NEGATIVE_COLOR
+                       for t in ordered]
+    fig = go.Figure(go.Bar(
+        x=[t.weight for t in ordered], y=[t.term for t in ordered], orientation="h",
+        marker_color=colors, customdata=[t.term for t in ordered],
+        text=[f"{t.count} op." for t in ordered], textposition="auto",
+        hovertemplate="%{y}<br>" + weight_label + ": %{x:.2f}<br>%{text}<extra></extra>",
+    ))
+    fig.update_layout(height=max(220, 26 * len(ordered) + 70), margin=_MARGIN,
+                      xaxis_title=weight_label, yaxis=dict(automargin=True))
     return fig
 
 
