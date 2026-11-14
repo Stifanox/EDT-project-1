@@ -5,16 +5,22 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from opimon.analytics import BasicAnalytics
+from opimon.analytics import BasicAnalytics, SentimentAnalytics
 from opimon.interfaces import OpinionAnalytics
 from opimon.models import Alert, Prediction, ScoredReview, Sentiment, SentimentSummary, TermStat
 
 ANALYTICS_FACTORIES = [
     pytest.param(BasicAnalytics, id="basic_stub"),
+    pytest.param(SentimentAnalytics, id="sentiment_analytics"),
 ]
 
 TREND_COLUMNS = ["period", "positive", "negative", "total", "positive_share"]
 COMPARE_COLUMNS = ["target_id", "total", "positive", "negative", "positive_share"]
+
+
+def _required_columns(df: pd.DataFrame, required: list[str]) -> list[str]:
+    """Wymagane kolumny są pierwsze i w tej kolejności; dodatkowe dalej są dozwolone."""
+    return list(df.columns)[: len(required)]
 
 
 @pytest.fixture(params=ANALYTICS_FACTORIES)
@@ -49,24 +55,24 @@ def test_summary(analytics, rows):
 
 def test_trend(analytics, rows):
     df = analytics.trend(rows, "D")
-    assert list(df.columns) == TREND_COLUMNS
+    assert _required_columns(df, TREND_COLUMNS) == TREND_COLUMNS
     assert df["period"].is_monotonic_increasing
     assert int(df["total"].sum()) == 5
     assert int(df["positive"].sum()) == 2 and int(df["negative"].sum()) == 2
     assert pd.api.types.is_numeric_dtype(df["positive_share"])
     assert str(df["period"].dt.tz) == "UTC"
-    assert list(analytics.trend([], "D").columns) == TREND_COLUMNS
+    assert _required_columns(analytics.trend([], "D"), TREND_COLUMNS) == TREND_COLUMNS
 
 
 def test_compare_targets(analytics, rows):
     df = analytics.compare_targets(rows)
-    assert list(df.columns) == COMPARE_COLUMNS
+    assert _required_columns(df, COMPARE_COLUMNS) == COMPARE_COLUMNS
     assert list(df["target_id"]) == ["test:t1", "test:t2"]
     assert list(df["total"]) == [3, 2]
     t1 = df.iloc[0]
     assert (t1["positive"], t1["negative"]) == (2, 1)
     assert t1["positive_share"] == pytest.approx(2 / 3)
-    assert list(analytics.compare_targets([]).columns) == COMPARE_COLUMNS
+    assert _required_columns(analytics.compare_targets([]), COMPARE_COLUMNS) == COMPARE_COLUMNS
 
 
 def test_top_terms(analytics, rows):

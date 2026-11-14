@@ -15,4 +15,4 @@ torch>=2.3
 plotly>=5.20                  # M7: porównanie modeli
 
 # --- wykresy (O3: A2, A4) ---
-# plotly>=5.20
+# plotly>=5.20 – zainstalowane już przez sekcję O2 (M7); wspólne dla wykresów obu osób
