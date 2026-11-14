@@ -81,10 +81,9 @@ def _make_training_data() -> dict[str, TrainingDataProvider]:  # O2
 
 
 def _make_analytics() -> OpinionAnalytics:  # O3
-    # TODO(A1/A4/A5): pełna implementacja.
-    from opimon.analytics import BasicAnalytics
+    from opimon.analytics import SentimentAnalytics
 
-    return BasicAnalytics()
+    return SentimentAnalytics()
 
 
 def _stub_factories() -> dict[str, Callable[[], object]]:

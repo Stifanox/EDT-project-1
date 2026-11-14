@@ -13,7 +13,7 @@
 |-------|--------|-----------------|
 | O1 | Fundament, źródła danych (API + scraping), baza, monitorowanie | 1 / 6 (+1 opcjonalny) |
 | O2 | Modele sentymentu, trening, ewaluacja | 7 / 7 |
-| O3 | Analiza, dashboard, przeglądarka opinii, alerty | 0 / 5 (+1 opcjonalny) |
+| O3 | Analiza, dashboard, przeglądarka opinii, alerty | 1 / 5 (+1 opcjonalny) |
 | Wszyscy | Integracja, raport | 0 / 2 |
 
 **Kolejność:** P0 jest jedynym etapem blokującym. Po jego merge do `main` wszystkie trzy osoby
@@ -71,12 +71,20 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 
 | ID | Etap | Status | Postęp | Zależności | Uwagi |
 |----|------|--------|--------|------------|-------|
-| [A1](docs/tasks/A1.md) | Statystyki i trend sentymentu | ⬜ TODO | 0/6 | !P0 | |
+| [A1](docs/tasks/A1.md) | Statystyki i trend sentymentu | ✅ DONE | 6/6 | !P0 | 2026-11-14 · trend z wygładzaniem, Wilson, `filter_period`, `label_agreement` |
 | [A2](docs/tasks/A2.md) | Widok „Dashboard” | ⬜ TODO | 0/6 | !P0, ~A1 | główny ekran demo |
 | [A3](docs/tasks/A3.md) | Widok „Opinie” – przeglądarka | ⬜ TODO | 0/6 | !P0 | |
 | [A4](docs/tasks/A4.md) | Słowa kluczowe: co chwalą, a co krytykują | ⬜ TODO | 0/5 | !P0 | |
 | [A5](docs/tasks/A5.md) | Alerty o spadku sentymentu | ⬜ TODO | 0/5 | !A1 | |
 | [A6](docs/tasks/A6.md) | (opcjonalnie) Eksport i raport | ⬜ TODO | 0/4 | ~A1, ~A4, ~A5 | |
+
+### Podsumowanie O3 — 2026-11-14
+
+- A1 ukończony: `SentimentAnalytics` zastępuje zaślepkę w `_make_analytics()`; trend z pustymi
+  okresami i wygładzonym udziałem, przedziały Wilsona w porównaniu obiektów, pomocniki
+  `filter_period`, `label_agreement`, `wilson_interval` (gotowe do użycia w A2).
+- Weryfikacja: 150 testów zaliczonych, 2 pominięte; Ruff czysty. Kolejne: A2, A3 (prośba O2
+  o obsługę `review_id`), A4, A5.
 
 ## Wspólne – na koniec
 
@@ -113,3 +121,4 @@ pracują równolegle. Kolejność wewnątrz sekcji jest zalecana.
 | 2026-11-08 | O2 | M5: nowe metody O2 `compare_models`, `evaluation_sources`, `evaluation_details`, `explain_text`; `evaluate_model` zachowuje dotychczasowe argumenty i wynik, dodaje opcjonalne `source_name` i `force`. Cache JSON identyfikuje dane, etykiety, model, biblioteki i próg. Źródło `sample` w porównaniach ma nazwę `demo:sample`, aby nie udawać danych z Internetu. Narzędzie pomiarowe `python -m opimon.sentiment.benchmark` zapisuje wyniki poza repo. |
 | 2026-11-08 | O2 | M7 wymaga Plotly do macierzy pomyłek i wykresu accuracy/F1; dodano `plotly>=5.20` w sekcji O2 wymagań. Sekcja O3 pozostaje bez zmian; docelowo zależność wspólna dla wykresów obu osób. |
 | 2026-11-08 | O2 | Końcowe powtórzenie testów ujawniło sporadyczny wyścig cache Windows; poprzedni commit został błędnie scalony i opublikowany mimo niepowodzenia testu. Poprawka w modułach O2 synchronizuje odczyt/zapis JSON i obsługuje blokadę istniejącego cache przez inny proces. Przed publikacją poprawki zaliczono 20 niezależnych powtórzeń testów współbieżności, pełne 133 testy oraz Ruff i start Streamlit. |
+| 2026-11-14 | O3 | A1: test kontraktowy `OpinionAnalytics` sprawdzał dokładną listę kolumn `trend`/`compare_targets`, co przeczyło zapisowi „dodatkowe kolumny są dozwolone” (A1). Teraz wymaga, by kolumny kontraktowe były pierwsze i w tej samej kolejności; `SentimentAnalytics` dodaje `positive_share_smoothed` oraz `ci_low`/`ci_high`. `trend` ma nowy opcjonalny argument `window`. Interfejsy i modele bez zmian. |
